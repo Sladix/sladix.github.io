@@ -57,9 +57,18 @@
  	Player.prototype.move = function()
  	{
  		this.rotation = this.angle;
- 		if(this.x < 0 || this.x > getWidth() || this.y < 0 || this.y > getHeight())
+ 		if(this.x-this.regX < 0 || this.x+this.regX > getWidth() || this.y-this.regX < 0 || this.y+this.regX > getHeight())
  		{
  			this.speed = 0;
+ 			if(this.x-this.regX < 0)
+ 				this.x += 0.1;
+ 			else
+ 				this.x -= 0.1;
+ 			if(this.y-this.regY < 0)
+ 				this.y += 0.1;
+ 			else
+ 				this.y -= 0.1;
+
  		}else
  		{
 	 		var velocityX = Math.cos((this.baseRotation + this.angle) * Math.PI / 180) * (this.speed * createjs.Ticker.interval);

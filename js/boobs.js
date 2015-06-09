@@ -42,10 +42,11 @@
 	 		createjs.Tween.get(this)
 	         .wait(500)
 	         .to({scaleX:2, scaleY:2}, 1000);
-	         /*.call(handleComplete);
+	         .call(handleComplete);
+
 	    function handleComplete() {
-	        //Tween complete
-	    }*/
+	        stage.removeChild(this);
+	    }
  	}
 
  	Boobs.prototype.move = function(){

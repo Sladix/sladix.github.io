@@ -72,6 +72,9 @@
  			this.x = getWidth()-this.regX;
  		if(this.x < 0)
  			this.x = 0+this.regX;
+
+ 		if(this.x < 0 || this.x > getWidth() || this.y < 0 || this.y > getHeight())
+ 			this.speed = 0;
  	}
 
  	Player.prototype.boost = function(speed)

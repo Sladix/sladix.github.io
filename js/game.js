@@ -25,8 +25,8 @@ function tick(e)
 
 function onImageLoaded(e) {
 	var canvas = document.getElementById("game");
-	canvas.width = getWidth() - 100;
-	canvas.height = getHeight() - 50;
+	canvas.width = getWidth() - 50;
+	canvas.height = getHeight();
 	stage = new createjs.Stage("game");
 
     

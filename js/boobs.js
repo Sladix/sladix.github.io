@@ -1,6 +1,7 @@
 (function (window) {
 	function Boobs(image) {
 		this.initialize(image);
+		this.alive = true;
 	}
 	Boobs.prototype = new createjs.Bitmap();
 
@@ -26,26 +27,31 @@
  	Boobs.prototype.tick = function(){
 
  		var intersection = ndgmr.checkRectCollision(this, player);
- 		if(intersection != null && player.hard)
+ 		if(intersection != null && this.alive && player.hard)
  		{
  			this.explode();
  		}else
- 		{ 			
-	 		this.x += Math.random();
-	 		if(this.x > (getWidth() -100))
-	 			this.reset();
+ 		{
+ 			if(this.alive) 			
+	 			this.move();
  		}
  	}
 
  	Boobs.prototype.explode = function(){
- 		if(this.scaleX < 2)
- 		{
- 			this.scaleX +=0.1;
- 			this.scaleY +=0.1;
- 		}else
- 		{
- 			stage.removeChild(this);
- 		}
+ 		this.alive = false;
+	 		createjs.Tween.get(this)
+	         .wait(500)
+	         .to({scaleX:2, scaleY:2}, 1000);
+	         /*.call(handleComplete);
+	    function handleComplete() {
+	        //Tween complete
+	    }*/
+ 	}
+
+ 	Boobs.prototype.move = function(){
+ 		this.x += Math.random();
+	 		if(this.x > (getWidth() -100))
+	 			this.reset();
  	}
  	window.Boobs = Boobs;
 } (window));

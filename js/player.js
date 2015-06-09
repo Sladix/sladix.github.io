@@ -57,14 +57,18 @@
  	Player.prototype.move = function()
  	{
  		if(this.x < 0 || this.x > getWidth() || this.y < 0 || this.y > getHeight())
+ 		{
  			this.speed = 0;
+ 		}else
+ 		{
+	 		var velocityX = Math.cos((this.baseRotation + this.angle) * Math.PI / 180) * (this.speed * createjs.Ticker.interval);
+			var velocityY = Math.sin((this.baseRotation + this.angle) * Math.PI / 180) * (this.speed * createjs.Ticker.interval);
 
- 		var velocityX = Math.cos((this.baseRotation + this.angle) * Math.PI / 180) * (this.speed * createjs.Ticker.interval);
-		var velocityY = Math.sin((this.baseRotation + this.angle) * Math.PI / 180) * (this.speed * createjs.Ticker.interval);
+			this.rotation = this.angle;
+			this.x = this.x + velocityX;
+			this.y = this.y + velocityY;
+ 		}
 
-		this.rotation = this.angle;
-		this.x = this.x + velocityX;
-		this.y = this.y + velocityY;
  	}
 
  	Player.prototype.boost = function(speed)

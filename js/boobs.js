@@ -28,7 +28,6 @@
  		var intersection = ndgmr.checkRectCollision(this, player);
  		if(intersection != null)
  		{
- 			console.log(intersection);
  			this.explode();
  		}else
  		{ 			

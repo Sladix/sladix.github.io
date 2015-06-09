@@ -41,7 +41,7 @@
  		this.alive = false;
 	 		createjs.Tween.get(this)
 	         .wait(500)
-	         .to({scaleX:2, scaleY:2}, 1000);
+	         .to({scaleX:2, scaleY:2}, 1000)
 	         .call(handleComplete);
 
 	    function handleComplete() {

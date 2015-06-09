@@ -19,7 +19,7 @@
  	}
 
  	Boobs.prototype.reset = function(){
- 		this.x = 0;
+ 		this.x = Math.floor((Math.random() * getWidth()-150) + 50);
  		this.y = Math.floor((Math.random() * getHeight()-150) + 50);
  	}
 

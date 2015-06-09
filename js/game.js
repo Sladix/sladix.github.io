@@ -32,7 +32,7 @@ function onImageLoaded(e) {
     
     var bimg = new Image();
     bimg.src = 'img/boobs.png';
-    for(var i = 0;i<3;i++){
+    for(var i = 0;i<50;i++){
         boobs[i] = new Boobs(bimg);
         stage.addChild(boobs[i]);
         boobs[i].reset();

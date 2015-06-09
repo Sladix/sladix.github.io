@@ -26,7 +26,7 @@
  	Boobs.prototype.tick = function(){
 
  		var intersection = ndgmr.checkRectCollision(this, player);
- 		if(intersection != null)
+ 		if(intersection != null && player.hard)
  		{
  			this.explode();
  		}else

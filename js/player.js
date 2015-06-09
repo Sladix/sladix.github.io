@@ -5,6 +5,7 @@
 		this.fadeDelta = 0.1;
 		this.baseRotation = -90;
 		this.angle = 0;
+		this.hard = false;
 	}
  	Player.prototype = new createjs.Bitmap();
 
@@ -87,14 +88,20 @@
 
  	Player.prototype.boner = function()
  	{
+ 		
  		if(this.scaleY < 2.5)
  			this.scaleY += 0.5;
+ 		else
+ 			this.hard = true;
  	}
 
  	Player.prototype.retract = function()
  	{
+ 		
  		if(this.scaleY > 1)
  			this.scaleY -= 0.5;
+ 		else
+ 			this.hard = false;
  	}
 
 

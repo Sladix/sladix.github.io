@@ -80,3 +80,9 @@ function handleKeyUp(e)
 }
 
 init();
+
+window.addEventListener('resize', resize, false);
+function resize() {
+    stage.canvas.width = window.innerWidth;
+    stage.canvas.height = window.innerHeight;
+}

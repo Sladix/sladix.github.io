@@ -39,9 +39,9 @@
 	    if(this.speed <= -0.1)
 	    	if (keys[40]) this.speed += 0.1;
 
-	    //Max speed forward = 0.5
+	    //Max speed forward = 0.3
 	    //Up
-	    if(this.speed > -0.4)
+	    if(this.speed > -0.3)
 	    	if (keys[38]) this.speed -= 0.1;
 
 	    this.move();

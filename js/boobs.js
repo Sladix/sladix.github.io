@@ -18,6 +18,7 @@
  		//on défini le centre
  		this.regX = 16;
  		this.regY = 46;
+ 		this.hasMST = Math.floor(Math.random() * 5) > 2.5;
  	}
 
  	Boobs.prototype.reset = function(){

@@ -60,7 +60,7 @@
  		if(createjs.Ticker.getTicks(true) % 5 == 0)
  		{
 			var point = new createjs.Shape();
-			point.graphics.beginFill("#333").drawCircle(0,0,3);
+			point.graphics.beginFill("#333").drawCircle(0,0,1);
 			point.x = this.x;
 			point.y = this.y;
 			this.trail.push(point);

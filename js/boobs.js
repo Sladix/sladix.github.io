@@ -18,7 +18,7 @@
  		//on défini le centre
  		this.regX = 16;
  		this.regY = 46;
- 		this.hasMST = Math.floor(Math.random() * 5) > 2.5;
+ 		this.hasMST = Math.floor(Math.random() * 5) > 2;
  	}
 
  	Boobs.prototype.reset = function(){
@@ -50,9 +50,19 @@
 	    function handleComplete() {
 	        var text = new createjs.Text(phrases[Math.floor(Math.random()*phrases.length)], "20px munroregular", "#000000");
 	        text.textAlign = "center";
-	        text.x = this.x,
-	        text.y = this.y,
+	        text.x = this.x;
+	        text.y = this.y;
 	        stage.addChild(text);
+	        if(this.hasMST)
+	        {
+	        	var mst = new createjs.Text("+1 STD", "20px munroregular", "#000000");
+	        	mst.textAlign = "center";
+	        	mst.x = this.x;
+	        	mst.y = this.y+30;
+	        	stage.addChild(mst);
+	        }
+
+
 	        //On envoie l'event du die
 	        var evt = new Event("boobdie");
 			evt.boob = this;
@@ -62,6 +72,7 @@
 	        	.to({alpha:0},1000)
 	        	.call(function(){
 	        		stage.removeChild(this);
+	        		stage.removeChild(mst);
 	        	})
 	        stage.removeChild(this);
 	    }

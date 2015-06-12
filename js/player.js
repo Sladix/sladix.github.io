@@ -6,6 +6,7 @@
 		this.baseRotation = -90;
 		this.angle = 0;
 		this.hard = false;
+		this.trail = [];
 	}
  	Player.prototype = new createjs.Bitmap();
 
@@ -37,18 +38,43 @@
 	    //Down
 	    //Max speed backward = 0
 	    if(this.speed <= -0.1)
-	    	if (keys[40]) this.speed += 0.1;
+	    	if (keys[40]) this.speed  = 0;
 
 	    //Max speed forward = 0.3
 	    //Up
 	    if(this.speed > -0.3)
 	    	if (keys[38]) this.speed -= 0.1;
 
+	    if(this.speed < 0)
+	    	this.leaveTrail();
+
 	    this.move();
  	}
+ 	//Trainée de zboub
+ 	Player.prototype.leaveTrail = function()
+ 	{
+ 		if(this.trail.length > 100)
+ 		{
+ 			this.cleanTrail();
+ 		}
+ 		if(createjs.Ticker.getTicks(true) % 5 == 0)
+ 		{
+			var point = new createjs.Shape();
+			point.graphics.beginFill("#333").drawCircle(0,0,3);
+			point.x = this.x;
+			point.y = this.y;
+			this.trail.push(point);
+			stage.addChildAt(point, 0);
+ 		}
 
+ 	}
+
+ 	Player.prototype.cleanTrail = function()
+ 	{
+ 		stage.removeChild(this.trail[0]);
+ 		this.trail.splice(0, 1);
+ 	}
  	// this will reset the position of the Player
- 	// we can call this e.g. whenever a key is pressed
  	Player.prototype.reset = function() {
  		this.x = 20;
  		this.y = 20;

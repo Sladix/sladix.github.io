@@ -46,7 +46,6 @@ function onImageLoaded(e) {
     compteur.y = getHeight()-30;
     compteur.x = 10;
     stage.on("boobdie",function(evt){
-        console.log(evt);
         var index = boobs.indexOf(evt.boob);
         boobs.splice(index, 1);
         compteur.text = "Chicks left : "+boobs.length;

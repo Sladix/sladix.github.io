@@ -1,10 +1,11 @@
 var stage,
     canvas,
     player,
+    hitler,
     img,
+    compteur,
     boobs = [],
-    keys = {},
-    stds = 0;
+    keys = {};
  
 function init() {
 
@@ -21,6 +22,7 @@ function tick(e)
     {
         boobs[b].tick();
     }
+    compteur.text = "Chicks left : "+boobs.length+ " | STD : "+player.stds+" | Life : "+player.life;
 	stage.update();
 }
 
@@ -30,7 +32,7 @@ function onImageLoaded(e) {
 	canvas.height = window.innerHeight;  
 	stage = new createjs.Stage("game");
 
-    
+    //On créer les biatches, on les ajoute et les reset
     var bimg = new Image();
     bimg.src = 'img/boobs.png';
     for(var i = 0;i<50;i++){
@@ -38,21 +40,29 @@ function onImageLoaded(e) {
         stage.addChild(boobs[i]);
         boobs[i].reset();
     }
-    //Objects initialization
+
+    //On crée hitler
+    var himg = new Image();
+    himg.src = 'img/heil.png';
+    hitler = new Hitler(himg);
+    stage.addChild(hitler);
+    hitler.reset();
+
+    //On créer le joueur
     player = new Player(img);
     stage.addChild(player);
     player.reset();
 
-    var compteur = new createjs.Text("Chicks left : "+boobs.length + " | STD : 0", "20px munroregular", "#000000");
+    //On défini le compteur de biatches et de mst
+    compteur = new createjs.Text("Chicks left : "+boobs.length + " | STD : 0 | Life : "+player.life, "20px munroregular", "#000000");
     compteur.y = getHeight()-30;
     compteur.x = 10;
     stage.on("boobdie",function(evt){
         var index = boobs.indexOf(evt.boob);
         if(evt.boob.hasMST)
-            stds ++;
+            player.stds ++;
 
         boobs.splice(index, 1);
-        compteur.text = "Chicks left : "+boobs.length+ " | STD : "+stds;
     });
     stage.addChild(compteur);
 
@@ -74,15 +84,16 @@ if ('ontouchstart' in document.documentElement) {
     }, false);
 } else {
     document.onkeydown = handleKeyDown;
-    document.onkeyup = handleKeyUp;
+    document.onkeyup = handleKeyUp;/*
     document.onmousedown = handleKeyDown;
-    document.onmouseup = handleKeyUp;
+    document.onmouseup = handleKeyUp;*/
 }
  
 function handleKeyDown(e)
 {
     // execute things on KeyDown
     // e.g.
+    /*console.log(e.keyCode);*/
     keys[e.keyCode] = true;
     //player.reset();
 }

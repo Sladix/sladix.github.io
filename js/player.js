@@ -2,11 +2,16 @@
 	function Player(image) {
 		this.initialize(image);
 		this.speed = 0;
-		this.fadeDelta = 0.1;
 		this.baseRotation = -90;
 		this.angle = 0;
 		this.hard = false;
 		this.trail = [];
+		this.stds = 0;
+		this.life = 3;
+		this.alive = true;
+		this.invincible = false;
+		this.invincibleTime = 2000;
+		this.canShoot = true;
 	}
  	Player.prototype = new createjs.Bitmap();
 
@@ -27,28 +32,37 @@
  	// we will call this function every frame to 
 	Player.prototype.tick = function () {
 		//On assigne les actions avec les touches
-		if (keys[37]) this.angle -= 4 ;
-	    if (keys[39]) this.angle += 4 ;
+		if(this.alive)
+		{
+			//Gauche et droite
+			if (keys[37]) this.angle -= 4 ;
+		    if (keys[39]) this.angle += 4 ;
 
-	    if (keys[32])
-	    	this.boner();
-	    else
-	    	this.retract();
+		    //Espace pour bander
+		    if (keys[32])
+		    	this.boner();
+		    else
+		    	this.retract();
 
-	    //Down
-	    //Max speed backward = 0
-	    if(this.speed <= -0.1)
-	    	if (keys[40]) this.speed  = 0;
+		    if(keys[17] && this.stds > 0 && this.canShoot)
+		    	this.fire();
 
-	    //Max speed forward = 0.3
-	    //Up
-	    if(this.speed > -0.3)
-	    	if (keys[38]) this.speed -= 0.1;
+		    //Down
+		    //Max speed backward = 0
+		    if(this.speed <= -0.1)
+		    	if (keys[40]) this.speed  = 0;
 
-	    if(this.speed < 0)
-	    	this.leaveTrail();
+		    //Max speed forward = -0.3
+		    //Up
+		    if(this.speed > -0.3)
+		    	if (keys[38]) this.speed -= 0.1;
 
-	    this.move();
+		    if(this.speed < 0)
+		    	this.leaveTrail();
+
+		    this.move();
+		}
+		
  	}
  	//Trainée de zboub
  	Player.prototype.leaveTrail = function()
@@ -68,7 +82,15 @@
  		}
 
  	}
-
+ 	Player.prototype.fire = function(){
+ 		
+ 		this.stds--;
+ 		this.canShoot = false;
+ 		var self = this;
+ 		setTimeout(function(){
+ 			self.canShoot = true;
+ 		},500);
+ 	}
  	Player.prototype.cleanTrail = function()
  	{
  		stage.removeChild(this.trail[0]);
@@ -98,6 +120,12 @@
 
  		}else
  		{
+ 			var intersection = ndgmr.checkRectCollision(this, hitler);
+ 			if(intersection != null && this.alive && !this.invincible)
+ 			{
+ 				this.looseLife();
+ 			}
+
 	 		var velocityX = Math.cos((this.baseRotation + this.angle) * Math.PI / 180) * (this.speed * createjs.Ticker.interval);
 			var velocityY = Math.sin((this.baseRotation + this.angle) * Math.PI / 180) * (this.speed * createjs.Ticker.interval);
 
@@ -105,6 +133,42 @@
 			this.y = this.y + velocityY;
  		}
 
+ 	}
+
+ 	Player.prototype.looseLife = function(){
+ 		this.life--;
+ 		var self = this;
+
+ 		if(this.life == 0)
+ 		{
+ 			//Animation de mort
+		 	this.alive = false;
+ 			createjs.Tween.get(this)
+ 				.wait(500)
+ 				.to({alpha:0},1000)
+ 				.call(function(){
+ 					self.invincible = false;
+		 			var go = new createjs.Text("GAME OVER", "60px munroregular", "#000000");
+		        	go.textAlign = "center";
+		        	go.x = Math.floor(getWidth()/2);
+		        	go.y = Math.floor(getHeight()/2);
+		        	stage.addChild(go);
+ 				})
+
+ 		}else
+ 		{
+ 			this.invincible = true;
+ 			createjs.Tween.get(this)
+ 				.to({alpha:0},this.invincibleTime/6)
+ 				.to({alpha:1},this.invincibleTime/6)
+ 				.to({alpha:0},this.invincibleTime/6)
+ 				.to({alpha:1},this.invincibleTime/6)
+ 				.to({alpha:0},this.invincibleTime/6)
+ 				.to({alpha:1},this.invincibleTime/6)
+ 				.call(function(){
+ 					self.invincible = false;
+ 				});
+ 		}
  	}
 
  	Player.prototype.boost = function(speed)

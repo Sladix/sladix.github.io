@@ -1,7 +1,9 @@
 (function (window) {
-	function Boobs(image) {
-		this.initialize(image);
+	var images = ['img/boobs.png','img/gosh.png','img/nude.png','img/heal.png'];
+	function Boobs() {
+		this.initialize(images[Math.floor(Math.random() * (images.length-1))]);
 		this.alive = true;
+		this.speed = 0.1;
 	}
 	var phrases = ["Aaaawwww","Eeeewwww","Right in ma butt","Haaaann","Oh no ma pussy !","Yeeeeek","You are a dick !"];
 	Boobs.prototype = new createjs.Bitmap();
@@ -22,8 +24,8 @@
  	}
 
  	Boobs.prototype.reset = function(){
- 		this.x = Math.floor((Math.random() * getWidth() - this.regX));
- 		this.y = Math.floor((Math.random() * getHeight() - this.regY));
+ 		this.x = Math.floor((Math.random() * (getWidth() - this.regX))+this.regX);
+ 		this.y = Math.floor((Math.random() * (getHeight() - this.regY))+this.regY);
  	}
 
  	Boobs.prototype.tick = function(){
@@ -79,9 +81,9 @@
  	}
 
  	Boobs.prototype.move = function(){
- 		this.x += Math.random();
+ 		this.x += this.speed * createjs.Ticker.interval;
 	 		if(this.x > (getWidth() - this.regX))
-	 			this.reset();
+	 			this.x = this.regX;
  	}
  	window.Boobs = Boobs;
 } (window));

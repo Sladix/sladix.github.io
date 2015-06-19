@@ -2,7 +2,7 @@
 	function Player(image) {
 		this.initialize(image);
 		this.speed = 0;
-		this.baseRotation = -90;
+		this.baseRotation = 90;
 		this.angle = 0;
 		this.hard = false;
 		this.trail = [];
@@ -49,15 +49,15 @@
 
 		    //Down
 		    //Max speed backward = 0
-		    if(this.speed <= -0.1)
+		    if(this.speed > 0)
 		    	if (keys[40]) this.speed  = 0;
 
 		    //Max speed forward = -0.3
 		    //Up
-		    if(this.speed > -0.3)
-		    	if (keys[38]) this.speed -= 0.1;
+		    if(this.speed < 0.3)
+		    	if (keys[38]) this.speed += 0.1;
 
-		    if(this.speed < 0)
+		    if(this.speed > 0)
 		    	this.leaveTrail();
 
 		    this.move();
@@ -87,9 +87,13 @@
  		this.stds--;
  		this.canShoot = false;
  		var self = this;
+ 		var b = new Bullet('img/aids.png',this.angle + this.baseRotation,{x:this.x,y:this.y});
+ 		bullets.push(b);
+ 		stage.addChild(b);
+
  		setTimeout(function(){
  			self.canShoot = true;
- 		},500);
+ 		},400);
  	}
  	Player.prototype.cleanTrail = function()
  	{
@@ -121,7 +125,7 @@
  		}else
  		{
  			var intersection = ndgmr.checkRectCollision(this, hitler);
- 			if(intersection != null && this.alive && !this.invincible)
+ 			if(intersection != null && this.alive && !this.invincible  && hitler.alive)
  			{
  				this.looseLife();
  			}

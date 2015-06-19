@@ -2,6 +2,7 @@
 	function Hitler(image) {
 		this.initialize(image);
 		this.alive = true;
+		this.life = 5;
 	}
 	var phrases = ["Achtung !","I vill vreck you !"];
 	Hitler.prototype = new createjs.Bitmap();
@@ -18,7 +19,6 @@
  		//on défini le centre
  		this.regX = 32;
  		this.regY = 98;
- 		this.hasMST = Math.floor(Math.random() * 5) > 2;
  	}
 
  	Hitler.prototype.reset = function(){
@@ -29,12 +29,19 @@
  	Hitler.prototype.tick = function(){
 
  		//var intersection = ndgmr.checkRectCollision(this, player);
-		if(this.alive) 			
+		if(this.life > 0) 			
 			this.move();
+		else
+			this.die();
  	}
 
  	Hitler.prototype.move = function(){
  		
+ 	}
+
+ 	Hitler.prototype.die = function(){
+ 		this.alive = false;
+ 		stage.removeChild(this);
  	}
  	window.Hitler = Hitler;
 } (window));

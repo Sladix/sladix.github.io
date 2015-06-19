@@ -5,6 +5,7 @@ var stage,
     img,
     compteur,
     boobs = [],
+    bullets = [],
     keys = {};
  
 function init() {
@@ -22,6 +23,11 @@ function tick(e)
     {
         boobs[b].tick();
     }
+    for(var b in bullets)
+    {
+        bullets[b].tick();
+    }
+    hitler.tick();
     compteur.text = "Chicks left : "+boobs.length+ " | STD : "+player.stds+" | Life : "+player.life;
 	stage.update();
 }
@@ -36,7 +42,7 @@ function onImageLoaded(e) {
     var bimg = new Image();
     bimg.src = 'img/boobs.png';
     for(var i = 0;i<50;i++){
-        boobs[i] = new Boobs(bimg);
+        boobs[i] = new Boobs();
         stage.addChild(boobs[i]);
         boobs[i].reset();
     }
@@ -104,10 +110,12 @@ function handleKeyUp(e)
     delete keys[e.keyCode];
 }
 
-init();
-
 window.addEventListener('resize', resize, false);
 function resize() {
     stage.canvas.width = window.innerWidth;
     stage.canvas.height = window.innerHeight;
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+  init();
+});

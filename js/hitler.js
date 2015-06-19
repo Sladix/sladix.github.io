@@ -3,6 +3,7 @@
 		this.initialize(image);
 		this.alive = true;
 		this.life = 5;
+		this.speed = 0.1;
 	}
 	var phrases = ["Achtung !","I vill vreck you !"];
 	Hitler.prototype = new createjs.Bitmap();
@@ -38,7 +39,19 @@
  	}
 
  	Hitler.prototype.move = function(){
- 		
+ 		var target = {x:player.x,y:player.y};
+ 		var d = Math.sqrt( Math.pow(target.x - this.x) + Math.pow( target.y - this.y) );
+ 		if(d < 200)
+ 		{
+ 			this.speed = 0.0001;
+ 		}else
+ 		{
+ 			this.speed = 0.001;
+ 		}
+ 		var vx = ( target.x - this.x) * ( this.speed * createjs.Ticker.interval );
+ 		var vy = ( target.y - this.y) * ( this.speed * createjs.Ticker.interval );
+ 		this.x += vx;
+ 		this.y += vy;
  	}
 
  	Hitler.prototype.die = function(){

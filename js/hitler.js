@@ -31,10 +31,15 @@
  		if(this.alive)
  		{
 	 		//var intersection = ndgmr.checkRectCollision(this, player);
-			if(this.life > 0) 			
-				this.move();
+			if(this.life > 0)
+			{
+				if(createjs.Ticker.getTime() > 3000) 			
+					this.move();
+			}
 			else
+			{
 				this.die();
+			}
  		}
  	}
 

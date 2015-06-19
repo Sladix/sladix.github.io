@@ -27,12 +27,14 @@
  	}
 
  	Hitler.prototype.tick = function(){
-
- 		//var intersection = ndgmr.checkRectCollision(this, player);
-		if(this.life > 0) 			
-			this.move();
-		else
-			this.die();
+ 		if(this.alive)
+ 		{
+	 		//var intersection = ndgmr.checkRectCollision(this, player);
+			if(this.life > 0) 			
+				this.move();
+			else
+				this.die();
+ 		}
  	}
 
  	Hitler.prototype.move = function(){
@@ -42,6 +44,11 @@
  	Hitler.prototype.die = function(){
  		this.alive = false;
  		stage.removeChild(this);
+ 		var go = new createjs.Text("DICK WIN", "60px munroregular", "#000000");
+    	go.textAlign = "center";
+    	go.x = Math.floor(getWidth()/2);
+    	go.y = Math.floor(getHeight()/2);
+    	stage.addChild(go);
  	}
  	window.Hitler = Hitler;
 } (window));

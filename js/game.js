@@ -28,6 +28,7 @@ function tick(e)
         bullets[b].tick();
     }
     hitler.tick();
+
     compteur.text = "Chicks left : "+boobs.length+ " | STD : "+player.stds+" | Life : "+player.life;
 	stage.update();
 }

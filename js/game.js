@@ -4,13 +4,13 @@ var stage,
     hitler,
     img,
     compteur,
-    boobs = [],
+    putes = [],
     bullets = [],
     keys = {};
- 
+
 function init() {
 
-    
+
     img = new Image();
     img.onload = onImageLoaded;
     img.src = 'img/dick.png';
@@ -18,10 +18,11 @@ function init() {
 
 function tick(e)
 {
-	player.tick();
-    for(var b in boobs)
+	  player.tick();
+
+    for(var b in putes)
     {
-        boobs[b].tick();
+        putes[b].tick();
     }
     for(var b in bullets)
     {
@@ -29,23 +30,32 @@ function tick(e)
     }
     hitler.tick();
 
-    compteur.text = "Chicks left : "+boobs.length+ " | STD : "+player.stds+" | Life : "+player.life;
-	stage.update();
+    if(putes.length < 1)
+    {
+      for(var i = 0;i<30;i++){
+          var booby = new Pute();
+          putes.push(booby);
+          stage.addChild(booby);
+          booby.reset();
+      }
+    }
+
+    compteur.text = "Chicks left : "+putes.length+ " | STD : "+player.stds+" | Life : "+player.life;
+	  stage.update();
 }
 
 function onImageLoaded(e) {
 	var canvas = document.getElementById("game");
 	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;  
+	canvas.height = window.innerHeight;
 	stage = new createjs.Stage("game");
 
     //On créer les biatches, on les ajoute et les reset
-    var bimg = new Image();
-    bimg.src = 'img/boobs.png';
     for(var i = 0;i<50;i++){
-        boobs[i] = new Boobs();
-        stage.addChild(boobs[i]);
-        boobs[i].reset();
+      var booby = new Pute();
+      putes.push(booby);
+      stage.addChild(booby);
+      booby.reset();
     }
 
     //On crée hitler
@@ -61,15 +71,12 @@ function onImageLoaded(e) {
     player.reset();
 
     //On défini le compteur de biatches et de mst
-    compteur = new createjs.Text("Chicks left : "+boobs.length + " | STD : 0 | Life : "+player.life, "20px munroregular", "#000000");
+    compteur = new createjs.Text("Chicks left : "+putes.length + " | STD : 0 | Life : "+player.life, "20px munroregular", "#000000");
     compteur.y = getHeight()-30;
     compteur.x = 10;
     stage.on("boobdie",function(evt){
-        var index = boobs.indexOf(evt.boob);
         if(evt.boob.hasMST)
             player.stds ++;
-
-        boobs.splice(index, 1);
     });
     stage.addChild(compteur);
 
@@ -85,7 +92,7 @@ if ('ontouchstart' in document.documentElement) {
     canvas.addEventListener('touchstart', function(e) {
         handleKeyDown();
     }, false);
- 
+
     canvas.addEventListener('touchend', function(e) {
         handleKeyUp();
     }, false);
@@ -95,7 +102,7 @@ if ('ontouchstart' in document.documentElement) {
     document.onmousedown = handleKeyDown;
     document.onmouseup = handleKeyUp;*/
 }
- 
+
 function handleKeyDown(e)
 {
     // execute things on KeyDown
@@ -104,7 +111,7 @@ function handleKeyDown(e)
     keys[e.keyCode] = true;
     //player.reset();
 }
- 
+
 function handleKeyUp(e)
 {
     // execute things on KeyUp

@@ -1,13 +1,14 @@
 (function (window) {
 	function Hitler(image) {
-		this.initialize(image);
+		this.vie = null;
 		this.alive = true;
 		this.life = 15;
 		this.speed = 0.1;
 		this.trying = false;
+		this.initialize(image);
 	}
 	var phrases = ["Achtung !","I vill vreck you !"];
-	Hitler.prototype = new createjs.Bitmap();
+	Hitler.prototype = new createjs.Container();
 
  	// save the original initialize-method so it won't be gone after
  	// overwriting it
@@ -15,12 +16,21 @@
 
  	// initialize the object
  	Hitler.prototype.initialize = function (image) {
- 		this.Bitmap_initialize(image);
+ 		var sprite = new createjs.Bitmap(image);
  		this.name = 'Hitler';
- 		this.snapToPixel = true;
+ 		sprite.snapToPixel = true;
  		//on défini le centre
- 		this.regX = 32;
- 		this.regY = 98;
+ 		sprite.regX = -32;
+ 		sprite.regY = 98;
+		this.addChild(sprite);
+
+		//vie de pédé
+		this.vie = new createjs.Text("<3 "+this.life, "20px munroregular", "#FF0000");
+		this.vie.x = 60;
+		this.vie.y = -120;
+		this.vie.textAlign = "center";
+		this.addChild(this.vie);
+
  	}
 
  	Hitler.prototype.reset = function(){
@@ -33,17 +43,15 @@
 
  		var target = {x:player.x,y:player.y};
  		var d = Math.sqrt( Math.pow((target.x - hitler.x),2) + Math.pow( (target.y - hitler.y),2) );
- 		if(!hitler.trying && d < 300 )
- 			console.log('lol');
  		if( !hitler.trying && d < 300 && !player.invincible)
  		{
  			hitler.trying = true;
 	 		setTimeout(function(){
 	 			hitler.trying = false;
-	 			console.log("finiattack");
 	 		},Math.floor(Math.random()*500)+700);
  		}
- 		var t = Math.floor(Math.random()*1000)+2000;
+		//Entre 1 et 5 secondes
+ 		var t = Math.floor(Math.random()*1000)+5000;
  		setTimeout(hitler.tryattack,t);
  	}
  	Hitler.prototype.tick = function(){
@@ -65,7 +73,7 @@
 		 		{
 		 			this.speed = 0.0001;
 		 		}
-				if(createjs.Ticker.getTime() > 3000) 			
+				if(createjs.Ticker.getTime() > 3000)
 					this.move();
 			}
 			else
@@ -74,10 +82,9 @@
 			}
  		}
  	}
-
  	Hitler.prototype.move = function(){
  		var target = {x:player.x,y:player.y};
- 		
+
  		var vx = ( target.x - this.x) * ( this.speed * createjs.Ticker.interval );
  		var vy = ( target.y - this.y) * ( this.speed * createjs.Ticker.interval );
  		this.x += vx;

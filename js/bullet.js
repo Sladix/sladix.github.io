@@ -29,15 +29,18 @@
 		if(intersection != null && hitler.alive)
 		{
 			hitler.life--;
+			hitler.vie.text = "<3 "+hitler.life;
 			this.remove();
 		}else if(this.x-this.regX < 0 || this.x+this.regX > getWidth() || this.y-this.regX < 0 || this.y+this.regX > getHeight())
 		{
+			var i = bullets.indexOf(this);
+			bullets.splice(i,1);
 			this.remove();
 		}else
 		{
 			this.move();
-		} 			
-			
+		}
+
  	}
 
  	Bullet.prototype.move = function(){
@@ -51,7 +54,6 @@
 		stage.removeChild(this);
 		var i = bullets.indexOf(this);
 		bullets.splice(i, 1);
-		console.log("ok");
  	}
  	window.Bullet = Bullet;
 } (window));

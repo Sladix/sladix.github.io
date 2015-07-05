@@ -93,7 +93,7 @@
 
  		setTimeout(function(){
  			self.canShoot = true;
- 		},400);
+ 		},200);
  	}
  	Player.prototype.cleanTrail = function()
  	{
@@ -102,8 +102,8 @@
  	}
  	// this will reset the position of the Player
  	Player.prototype.reset = function() {
- 		this.x = 20;
- 		this.y = 20;
+ 		this.x = Math.floor(getWidth()/2);
+ 		this.y = Math.floor(getHeight()/2);
  		this.rotation = this.baseRotation;
  	}
 

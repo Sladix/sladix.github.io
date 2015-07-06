@@ -94,6 +94,7 @@
  	Hitler.prototype.die = function(){
  		this.alive = false;
  		stage.removeChild(this);
+		ga('send', 'event', 'Game', 'Action', 'Win', parseInt(createjs.Ticker.getTime()));
  		var go = new createjs.Text("DICK WIN", "60px munroregular", "#000000");
     	go.textAlign = "center";
     	go.x = Math.floor(getWidth()/2);

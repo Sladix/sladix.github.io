@@ -152,6 +152,7 @@
  				.to({alpha:0},1000)
  				.call(function(){
  					self.invincible = false;
+					ga('send', 'event', 'Game', 'Action', 'Loose', parseInt(createjs.Ticker.getTime()));
 		 			var go = new createjs.Text("GAME OVER", "60px munroregular", "#000000");
 		        	go.textAlign = "center";
 		        	go.x = Math.floor(getWidth()/2);

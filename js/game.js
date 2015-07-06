@@ -32,7 +32,7 @@ function tick(e)
 
     if(putes.length < 1)
     {
-      for(var i = 0;i<30;i++){
+      for(var i = 0;i<5;i++){
           var booby = new Pute();
           putes.push(booby);
           stage.addChild(booby);

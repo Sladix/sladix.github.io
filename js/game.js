@@ -60,7 +60,7 @@ function onImageLoaded(e) {
 
     //On crée hitler
     var himg = new Image();
-    himg.src = 'img/uglypao.png';
+    himg.src = (window.location.search.replace("?", "") == 'heil')?'img/heil.png':'img/uglypao.png';
     hitler = new Hitler(himg);
     stage.addChild(hitler);
     hitler.reset();

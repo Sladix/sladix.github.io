@@ -9,7 +9,8 @@ if (typeof Population == "undefined"){
   Population.Human = function(){
     return new function(){
       this.name = 'John';
-      this.color = '#00FF00';
+      this.sex = (Math.random() > 0.4)?'f':'m';
+      this.color = (this.sex == 'f')?'#E219DF':'#3798EA';
       this.thinkRate = 500; //On pense toutes les secondes
       this.thinkedTime = null;
 

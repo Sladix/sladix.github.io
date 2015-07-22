@@ -6,7 +6,23 @@
 	<link href='http://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
 </head>
 <body>
-  <canvas id="scene" width="1000" height="1000"></canvas>
+	<style media="screen">
+		.scene-container{
+			position:relative;
+			height: 1000px;
+			width: 1000px;
+		}
+		.scene-container #grid
+		{
+			position: absolute;
+			top:0;
+			left:0;
+		}
+	</style>
+	<div class="scene-container">
+		<canvas id="grid" width="1000" height="1000"></canvas>
+  	<canvas id="scene" width="1000" height="1000"></canvas>
+	</div>
 	<script type="text/javascript" src="js/population.js"></script>
 	<script type="text/javascript" src="js/human.js"></script>
 	<script type="text/javascript" src="js/logic.js"></script>

@@ -13,6 +13,7 @@ if (typeof Population == "undefined"){
       this.color = (this.sex == 'f')?'#E219DF':'#3798EA';
       this.thinkRate = 500; //On pense toutes les secondes
       this.thinkedTime = null;
+      this.speed = 100;
 
       this.state = 0;
 
@@ -29,7 +30,7 @@ if (typeof Population == "undefined"){
 
       this.canMove = function(position)
       {
-        if(position.x < 0 || position.x > Population.world.cols || position.y < 0 || position.y > Population.world.rows)
+        if(position.x < 0 || position.x > Population.world.cols-1 || position.y < 0 || position.y > Population.world.rows-1)
           return false;
         if(Population.map[position.x][position.y] != null)
           return false;

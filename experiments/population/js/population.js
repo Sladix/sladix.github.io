@@ -17,14 +17,15 @@ var Population = {
   world : {
     startTime : 0,
     time : 0,
-    rows : 20,
-    cols : 20,
+    rows : 50,
+    cols : 50,
     gridSize : 10,
     canvas : null,
     ctx : null
   },
   map : [],
-  obstaclesMap : [],
+  obstaclesMap :  null,
+  finder  : null,
   init : function(opts){
     var options = {
       canvas : 'scene'
@@ -42,13 +43,14 @@ var Population = {
     this.grid.canvas.addEventListener('click', function(event) {
         var x = Math.floor((event.pageX - elemLeft - self.world.gridSize) / 10),
             y = Math.floor((event.pageY - elemTop - self.world.gridSize) / 10);
-
-        // Collision detection between clicked offset and element.
-        console.log(x);
-        console.log(y);
         Population.createWall(x,y);
 
     }, false);
+    // Pathfinder initialisation
+    this.obstaclesMap = new PF.Grid(this.world.cols,this.world.rows);
+    this.finder = new PF.AStarFinder({
+      allowDiagonal: false
+  });
 
     this.then = new Date().getTime();
     this.drawGrid();
@@ -60,7 +62,10 @@ var Population = {
     }, 1000);
   },
   createWall : function(x,y){
-    this.obstaclesMap[x][y] = 1;
+    if(x < 0 || x > this.world.cols || y < 0 || y > this.world.rows)
+      return false;
+
+    this.obstaclesMap.setWalkableAt(x,y,false);
     var ctx = Population.grid.ctx;
     ctx.beginPath();
     ctx.rect(x * Population.world.gridSize, y * Population.world.gridSize, Population.world.gridSize, Population.world.gridSize);
@@ -105,20 +110,7 @@ var Population = {
     this.now = (new Date()).getTime();
 	  this.delta = this.now - this.then;
     this.world.ctx.clearRect(0, 0, this.world.canvas.width, this.world.canvas.height);
-    for(var i = 0; i <= this.world.cols ;i++)
-    {
-      for(var j = 0; j <= this.world.cols ;j++){
-        this.map[i][j] = null;
-      }
-    }
-    for (var i = 0; i < this.actors.length; i++) {
-      this.map[this.actors[i].position.x][[this.actors[i].position.y]] = 'a';
-      if(this.actors[i].targetPos != null)
-      {
-        this.map[this.actors[i].targetPos.x][[this.actors[i].targetPos.y]] = 'a';
-      }
-    }
-
+    
     for (var i = 0; i < this.actors.length; i++) {
       this.actors[i].update();
     }

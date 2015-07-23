@@ -23,7 +23,7 @@ var Population = {
     canvas : null,
     ctx : null
   },
-  map : [],
+  wallMap : [],
   obstaclesMap :  null,
   finder  : null,
   init : function(opts){
@@ -65,7 +65,7 @@ var Population = {
     if(x < 0 || x > this.world.cols || y < 0 || y > this.world.rows)
       return false;
 
-    this.obstaclesMap.setWalkableAt(x,y,false);
+    this.wallMap.push([x,y]);
     var ctx = Population.grid.ctx;
     ctx.beginPath();
     ctx.rect(x * Population.world.gridSize, y * Population.world.gridSize, Population.world.gridSize, Population.world.gridSize);
@@ -83,13 +83,6 @@ var Population = {
       this.grid.ctx.lineWidth = 1;
       this.grid.ctx.strokeStyle = '#ddd';
       this.grid.ctx.stroke();
-      this.map[i] = [];
-      this.obstaclesMap[i] = [];
-      for(var j = 0; j <= this.world.rows ;j++)
-      {
-        this.map[i][j] = null;
-        this.obstaclesMap[i][j] = null;
-      }
     }
     //y
     for(var i = 0; i <= this.world.rows ;i++)
@@ -110,7 +103,18 @@ var Population = {
     this.now = (new Date()).getTime();
 	  this.delta = this.now - this.then;
     this.world.ctx.clearRect(0, 0, this.world.canvas.width, this.world.canvas.height);
-    
+    this.obstaclesMap = new PF.Grid(this.world.cols,this.world.rows);
+    for (var i = 0; i < this.wallMap.length; i++) {
+      this.obstaclesMap.setWalkableAt(this.wallMap[i][0],this.wallMap[i][1],false);
+    }
+    for (var i = 0; i < this.actors.length; i++) {
+      this.obstaclesMap.setWalkableAt(this.actors[i].position.x,this.actors[i].position.y,false);
+      if(this.actors[i].targetPos != null)
+      {
+        this.obstaclesMap.setWalkableAt(this.actors[i].targetPos[0],this.actors[i].targetPos[1],false);
+      }
+    }
+
     for (var i = 0; i < this.actors.length; i++) {
       this.actors[i].update();
     }

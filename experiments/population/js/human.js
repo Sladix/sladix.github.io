@@ -23,7 +23,7 @@ if (typeof Population == "undefined"){
       this.finalPos = null;
       this.isMoving = false;
       this.isBusy = false;
-      this.maxEnergy = 10;
+      this.maxEnergy = 100;
       this.states = [0];
 
       this.attributes = {
@@ -42,13 +42,14 @@ if (typeof Population == "undefined"){
       this.realPosition.y = this.position.y*Population.world.gridSize;
 
       this.update = function(){
-        if(this.thinkedTime == null || Population.world.time - this.thinkedTime > this.thinkRate){
-          this.think();
-        }
 
         if(this.isMoving)
         {
           this.move();
+        }
+
+        if(this.thinkedTime == null || Population.world.time - this.thinkedTime > this.thinkRate){
+          this.think();
         }
 
         this.draw();
@@ -68,7 +69,8 @@ if (typeof Population == "undefined"){
           this.isMoving = false;
           this.realPosition.x = ((this.targetPos != null)?this.targetPos[0]:this.position.x) * Population.world.gridSize;
           this.realPosition.y = ((this.targetPos != null)?this.targetPos[1]:this.position.y) * Population.world.gridSize;
-          Population.obstaclesMap.setWalkableAt(this.position.x,this.position.y,false);
+          this.position.x = this.realPosition.x / Population.world.gridSize;
+          this.position.y = this.realPosition.y / Population.world.gridSize;
         }
 
         if(this.hasState(Population.states.SLEEPING))
@@ -99,10 +101,8 @@ if (typeof Population == "undefined"){
 
         if(this.realPosition.x.toFixed(0) == this.targetPos[0] * Population.world.gridSize && this.realPosition.y.toFixed(0) == this.targetPos[1] * Population.world.gridSize)
         {
-          Population.obstaclesMap.setWalkableAt(this.position.x,this.position.y,true);
           this.position.x = this.targetPos[0];
           this.position.y = this.targetPos[1];
-          Population.obstaclesMap.setWalkableAt(this.position.x,this.position.y,false);
           this.attributes.energy--;
           this.attributes.hunger++;
           this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
@@ -148,7 +148,6 @@ if (typeof Population == "undefined"){
           this.removeState(Population.states.WAITING);
           //On enlève le premier car c'est la position actuelle
           this.targetPos = this.path.shift();
-          Population.obstaclesMap.setWalkableAt(this.targetPos[0],this.targetPos[1],false);
           this.isMoving = true;
           this.states.push(Population.states.ROAMING);
         }

@@ -17,8 +17,8 @@ var Population = {
   world : {
     startTime : 0,
     time : 0,
-    rows : 50,
-    cols : 50,
+    rows : 10,
+    cols : 10,
     gridSize : 10,
     canvas : null,
     ctx : null
@@ -47,10 +47,9 @@ var Population = {
 
     }, false);
     // Pathfinder initialisation
-    this.obstaclesMap = new PF.Grid(this.world.cols,this.world.rows);
     this.finder = new PF.AStarFinder({
-      allowDiagonal: false
-  });
+        allowDiagonal: false
+    });
 
     this.then = new Date().getTime();
     this.drawGrid();

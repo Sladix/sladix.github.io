@@ -15,15 +15,16 @@ if (typeof Population == "undefined"){
       this.name = 'John';
       this.sex = (Math.random() > 0.4)?'f':'m';
       this.color = (this.sex == 'f')?'#E219DF':'#3798EA';
-      this.thinkRate = 1000; //On pense toutes les secondes
+      this.thinkRate = 200; //On pense toutes les secondes
       this.thinkedTime = null;
-      this.speed = 10;
+      this.speed = this.thinkRate / 60;
       this.path = [];
       this.targetPos = null;
       this.finalPos = null;
       this.isMoving = false;
+      this.hasArrived = false;
       this.isBusy = false;
-      this.maxEnergy = 100;
+      this.maxEnergy = 10 + Math.floor(Math.random() * 50);
       this.states = [0];
 
       this.attributes = {
@@ -43,19 +44,46 @@ if (typeof Population == "undefined"){
 
       this.update = function(){
 
+        if(this.thinkedTime == null || Population.world.time - this.thinkedTime > this.thinkRate){
+          this.think();
+        }
         if(this.isMoving)
         {
           this.move();
         }
 
-        if(this.thinkedTime == null || Population.world.time - this.thinkedTime > this.thinkRate){
-          this.think();
-        }
-
         this.draw();
-      };
 
+        if(this.targetPos != null && this.isCloseEnough())
+        {
+          this.position.x = this.targetPos[0];
+          this.position.y = this.targetPos[1];
+          this.hasArrived = true;
+        }
+      };
+      this.isCloseEnough = function(){
+        return this.realPosition.x.toFixed(0) == this.targetPos[0] * Population.world.gridSize && this.realPosition.y.toFixed(0) == this.targetPos[1] * Population.world.gridSize;
+      }
       this.think = function () {
+        //Life is life
+        this.attributes.hunger++;
+
+        if(this.hasArrived)
+        {
+          this.attributes.energy--;
+          this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
+          this.path.shift();
+          if(this.path.length == 0)
+          {
+            this.targetPos = null;
+            this.isMoving = false;
+            this.finalPos = null;
+            this.hasArrived = false;
+            this.removeLastState();
+          }else {
+            this.targetPos = this.path.shift();
+          }
+        }
         //C'est là qu'on va inclure les composants de comportemetns
         //Si plus d'énergie, on dors
         if(this.states.length == 0)
@@ -67,10 +95,6 @@ if (typeof Population == "undefined"){
           this.removeAllStates();
           this.states.push(Population.states.SLEEPING);
           this.isMoving = false;
-          this.realPosition.x = ((this.targetPos != null)?this.targetPos[0]:this.position.x) * Population.world.gridSize;
-          this.realPosition.y = ((this.targetPos != null)?this.targetPos[1]:this.position.y) * Population.world.gridSize;
-          this.position.x = this.realPosition.x / Population.world.gridSize;
-          this.position.y = this.realPosition.y / Population.world.gridSize;
         }
 
         if(this.hasState(Population.states.SLEEPING))
@@ -94,28 +118,11 @@ if (typeof Population == "undefined"){
         }
       }
       this.move = function () {
-        var speedx = (this.targetPos[0]*Population.world.gridSize - this.realPosition.x) * this.speed * Population.delta / 1000;
-        var speedy = (this.targetPos[1]*Population.world.gridSize - this.realPosition.y) * this.speed * Population.delta / 1000;
+        this.hasArrived = false;
+        var speedx = (this.targetPos[0]*Population.world.gridSize - this.realPosition.x) * this.speed * Population.delta / this.thinkRate;
+        var speedy = (this.targetPos[1]*Population.world.gridSize - this.realPosition.y) * this.speed * Population.delta / this.thinkRate;
         this.realPosition.x += speedx;
         this.realPosition.y += speedy;
-
-        if(this.realPosition.x.toFixed(0) == this.targetPos[0] * Population.world.gridSize && this.realPosition.y.toFixed(0) == this.targetPos[1] * Population.world.gridSize)
-        {
-          this.position.x = this.targetPos[0];
-          this.position.y = this.targetPos[1];
-          this.attributes.energy--;
-          this.attributes.hunger++;
-          this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
-          this.path.shift();
-          if(this.path.length == 0)
-          {
-            this.targetPos = null;
-            this.isMoving = false;
-            this.removeLastState();
-          }else {
-            this.targetPos = this.path.shift();
-          }
-        }
       }
       this.removeAllStates = function(){
         this.states = [];
@@ -143,6 +150,7 @@ if (typeof Population == "undefined"){
         //this.finalPos = {x:0,y:0};
         // TODO: recalculer le path quand on bouge
         this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
+        this.path.shift();
         if(this.path.length > 1)
         {
           this.removeState(Population.states.WAITING);
@@ -168,10 +176,15 @@ if (typeof Population == "undefined"){
         ctx.strokeStyle = '#777';
         ctx.stroke();
 
-        // ctx.beginPath();
-        // ctx.rect(this.targetPos.x*Population.world.gridSize,this.targetPos.y*Population.world.gridSize, Population.world.gridSize, Population.world.gridSize);
-        // ctx.fillStyle = "#FF0000";
-        // ctx.fill();
+        // if(this.finalPos != null)
+        // {
+        //   for (var i = 0; i < this.path.length; i++) {
+        //     ctx.beginPath();
+        //     ctx.rect(this.path[i][0]*Population.world.gridSize,this.path[i][1]*Population.world.gridSize, Population.world.gridSize, Population.world.gridSize);
+        //     ctx.fillStyle = "#FF0000";
+        //     ctx.fill();
+        //   }
+        // }
 
       }
     }

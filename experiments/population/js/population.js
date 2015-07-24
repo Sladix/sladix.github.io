@@ -107,10 +107,13 @@ var Population = {
       this.obstaclesMap.setWalkableAt(this.wallMap[i][0],this.wallMap[i][1],false);
     }
     for (var i = 0; i < this.actors.length; i++) {
-      this.obstaclesMap.setWalkableAt(this.actors[i].position.x,this.actors[i].position.y,false);
-      if(this.actors[i].targetPos != null)
+      if(this.actors[i].isAlive)
       {
-        this.obstaclesMap.setWalkableAt(this.actors[i].targetPos[0],this.actors[i].targetPos[1],false);
+        this.obstaclesMap.setWalkableAt(this.actors[i].position.x,this.actors[i].position.y,false);
+        if(this.actors[i].targetPos != null)
+        {
+          this.obstaclesMap.setWalkableAt(this.actors[i].targetPos[0],this.actors[i].targetPos[1],false);
+        }
       }
     }
 

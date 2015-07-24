@@ -26,9 +26,12 @@ if (typeof Population == "undefined"){
       this.isBusy = false;
       this.maxEnergy = 10 + Math.floor(Math.random() * 50);
       this.states = [0];
+      this.isAlive = true;
 
       this.attributes = {
-        anger   : Math.floor(Math.random() * 50),
+        life    : 10,
+        anger   : 0,
+        hunger  : 0,
         love    : 0,
         energy  : this.maxEnergy,
         beauty  : 20 + Math.floor(Math.random() * 100)
@@ -43,28 +46,36 @@ if (typeof Population == "undefined"){
       this.realPosition.y = this.position.y*Population.world.gridSize;
 
       this.update = function(){
-
-        if(this.thinkedTime == null || Population.world.time - this.thinkedTime > this.thinkRate){
-          this.think();
-        }
-        if(this.isMoving)
+        if(this.isAlive)
         {
-          this.move();
+          if(this.thinkedTime == null || Population.world.time - this.thinkedTime > this.thinkRate){
+            this.think();
+          }
+          if(this.isMoving)
+          {
+            this.move();
+          }
+
+          if(this.targetPos != null && this.isCloseEnough())
+          {
+            this.position.x = this.targetPos[0];
+            this.position.y = this.targetPos[1];
+            this.hasArrived = true;
+          }
         }
 
         this.draw();
-
-        if(this.targetPos != null && this.isCloseEnough())
-        {
-          this.position.x = this.targetPos[0];
-          this.position.y = this.targetPos[1];
-          this.hasArrived = true;
-        }
       };
       this.isCloseEnough = function(){
         return this.realPosition.x.toFixed(0) == this.targetPos[0] * Population.world.gridSize && this.realPosition.y.toFixed(0) == this.targetPos[1] * Population.world.gridSize;
       }
       this.think = function () {
+        //On décède si on le doit
+        if(this.attributes.life <= 0)
+        {
+          this.isAlive = false;
+          return;
+        }
         //Life is life
         this.attributes.hunger++;
 
@@ -82,6 +93,8 @@ if (typeof Population == "undefined"){
             this.removeLastState();
           }else {
             this.targetPos = this.path.shift();
+            //On "réserve" la case
+            Population.obstaclesMap.setWalkableAt(this.targetPos[0],this.targetPos[1],false);
           }
         }
         //C'est là qu'on va inclure les composants de comportemetns
@@ -90,11 +103,18 @@ if (typeof Population == "undefined"){
         {
           this.states.push(Population.states.WAITING);
         }
+        //Si on a plus d'énergie on dors
+        // TODO: à 10% de l'énergie on cherche un endroit ou dormir
         if(this.attributes.energy < 1 && !this.hasState(Population.states.SLEEPING))
         {
           this.removeAllStates();
           this.states.push(Population.states.SLEEPING);
           this.isMoving = false;
+        }
+
+        if(this.attributes.hunger > this.maxEnergy * 2)
+        {
+          this.attributes.life--;
         }
 
         if(this.hasState(Population.states.SLEEPING))
@@ -106,7 +126,6 @@ if (typeof Population == "undefined"){
         {
           this.roam();
         }
-
 
         this.thinkedTime = (new Date()).getTime() - Population.world.startTime;
       }
@@ -167,6 +186,10 @@ if (typeof Population == "undefined"){
         else
           color = this.color;
 
+        if(!this.isAlive)
+        {
+          color = '#333';
+        }
         var ctx = Population.world.ctx;
         ctx.beginPath();
         ctx.rect(this.realPosition.x, this.realPosition.y, Population.world.gridSize, Population.world.gridSize);

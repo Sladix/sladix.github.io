@@ -8,7 +8,7 @@ Population.createWall(1,3);
 Population.createWall(2,3);
 Population.createWall(3,0);
 Population.createWall(3,1);
-for (var i = 0; i <1; i++) {
+for (var i = 0; i <5; i++) {
   var options = {
     position : {
       x: Math.floor(Population.world.cols / 2),
@@ -18,14 +18,3 @@ for (var i = 0; i <1; i++) {
   var a = new Population.Human(options);
   Population.addActor(a);
 }
-
-var options = {
-  position : {
-    x : 10,
-    y : 10
-  },
-  attributes : {
-    food : 3
-  }
-}
-var o = new Population.Food(options);

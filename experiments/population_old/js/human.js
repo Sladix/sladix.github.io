@@ -5,6 +5,12 @@
 if (typeof Population == "undefined"){
   console.log('Erreur, population non incluse');
 }else{
+  Population.states = {
+    WAITING :0,
+    SLEEPING:1,
+    ROAMING :2,
+    EAT     :3
+  }
   Population.locationTypes = {
     HOME : 0
   }
@@ -17,11 +23,10 @@ if (typeof Population == "undefined"){
       this.thinkedTime = null;
       this.speed = this.thinkRate / 60;
       this.path = [];
-      this.target = null;
       this.targetPos = null;
       this.finalPos = null;
       this.isMoving = false;
-      this.hasArrived = true;
+      this.hasArrived = false;
       this.isBusy = false;
       this.maxEnergy = 5 + Math.floor(Math.random() * 5);
       this.states = [0];
@@ -38,7 +43,6 @@ if (typeof Population == "undefined"){
         life    : 20 + Math.floor(Math.random() * 50),
         anger   : 0,
         hunger  : 0,
-        hungerTreshold  : 50,
         love    : 0,
         flesh   : 100,
         energy  : this.maxEnergy,
@@ -70,16 +74,14 @@ if (typeof Population == "undefined"){
       this.realPosition.x = this.position.x*Population.world.gridSize;
       this.realPosition.y = this.position.y*Population.world.gridSize;
 
-      // On initialise le BT
-
       this.update = function(){
         if(this.isAlive)
         {
           if(this.thinkedTime == null || Population.world.time - this.thinkedTime > this.thinkRate){
             this.think();
           }
-
-          if(!this.hasArrived)
+          
+          if(this.isMoving)
           {
             this.move();
           }
@@ -100,66 +102,113 @@ if (typeof Population == "undefined"){
       }
 
       this.think = function () {
-        //Vivre ça donne faim
-        this.attributes.hunger++;
-        //Si on est arrivé, on se prépare à bouger à la prochaine case;
-        if(this.hasArrived)
+        //On décède si on le doit
+        if(this.attributes.life <= 0)
         {
-          //Quand on bouge ça fait perdre de l'énergie
-          //TODO : quand on attaque, baise aussi
-          this.attributes.energy--;
-          //ici on tick le BT
+          this.isAlive = false;
+          return;
+        }
 
+        //Si on a plus d'énergie on dors
+        // TODO: à 10% de l'énergie on cherche un endroit ou dormir
+        if(this.attributes.energy < 1 && !this.hasState(Population.states.SLEEPING))
+        {
+          this.states.push(Population.states.SLEEPING);
+          this.isMoving = false;
+        }
+
+        //Si on est arrivé, on se prépare à bouger à la prochaine case;
+        if(this.hasArrived && this.isMoving)
+        {
+          this.attributes.energy--;
+          this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
+          this.path.shift();
+
+          if(this.path.length == 0)
+          {
+            this.targetPos = null;
+            this.isMoving = false;
+            this.finalPos = null;
+            //On est pas arrivé puisqu'on va nul part
+            this.hasArrived = false;
+            this.removeLastState();
+          }else {
+            //Recalculer le path
+            this.targetPos = this.path.shift();
+            //On "réserve" la case
+            Population.obstaclesMap.setWalkableAt(this.targetPos[0],this.targetPos[1],false);
+          }
+        }
+
+        //Si on a plus d'états, on attends
+        if(this.states.length == 0)
+        {
+          this.states.push(Population.states.WAITING);
+        }
+
+        if(this.hasState(Population.states.SLEEPING))
+        {
+          this.sleep();
+        }
+
+        //Trigger de la recherche de nourriture
+        //TODO à partir de this.attributes.hunger > this.maxEnergy on cherche de la bouffe
+        if(this.attributes.hunger > this.attributes.life/2 && !this.hasState(Population.states.EAT) && !this.hasState(Population.states.SLEEP))
+        {
+          //En dernier recours on cherche un cadavre
+          var nearestBody = Population.Tools.getNearestBody(this);
+          if(nearestBody != null && nearestBody.attributes.flesh > 0 && !nearestBody.isBusy)
+          {
+            this.removeAllStates();
+            this.go(nearestBody.position,[Population.states.EAT,Population.states.ROAMING]);
+            this.target = nearestBody;
+          }
+        }
+
+        if(this.states[this.states.length-1] == Population.states.EAT)
+        {
+          this.eat();
+        }else {
+          this.attributes.hunger++;
+          //Si on a trop faim on perd de la vie
+          if(this.attributes.hunger > this.attributes.life)
+          {
+            this.attributes.life--;
+          }
+        }
+        // ON PENSE ICI on parcours les différents comportements
+
+
+        if(this.hasState(Population.states.WAITING) && Math.random() > 0.5)
+        {
+          this.roam();
         }
 
         this.thinkedTime = (new Date()).getTime() - Population.world.startTime;
-      }
-
-      // Si un param est passé c'est la destination finale
-      this.moveTo = function(position){
-        if(typeof position != "undefined" && this.finalPos != position)
-        {
-          this.finalPos = position;
-        }
-        this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
-        this.path.shift();
-
-        if(this.path.length == 0)
-        {
-          this.targetPos = null;
-          //On est arrivé à destination
-        }else {
-          this.hasArrived = false;
-          //Recalculer le path
-          this.targetPos = this.path.shift();
-          //On "réserve" la case
-          Population.obstaclesMap.setWalkableAt(this.targetPos[0],this.targetPos[1],false);
-        }
       }
 
       this.sleep = function(){
         this.attributes.energy+=2;
         if(this.attributes.energy >= this.maxEnergy)
         {
-          // TODO: return success
-        }else {
-          // return running
+          this.removeState(Population.states.SLEEPING);
+          if(this.targetPos != null)
+            this.isMoving = true;
         }
       }
 
-      this.eat = function(target){
-        if(target.attributes.food > 0 && this.attributes.hunger > this.attributes.hungerTreshold)
+      this.eat = function(){
+        if(this.target.attributes.flesh >0 && this.attributes.hunger > 0)
         {
-          target.isBusy = true;
+          this.target.isBusy = true;
           this.attributes.hunger--;
           this.attributes.life++;
-          target.attributes.food--;
-          // TODO: return running
+          this.target.attributes.flesh--;
         }else {
-          // TODO return bt.success
-          target.isBusy = false;
-          if(target.attributes.food <=0)
-            target.color = '#0000FF';
+          this.removeAllStates();
+          this.target.isBusy = false;
+          if(this.target.attributes.flesh <=0)
+            this.target.deadColor = '#0000FF';
         }
       }
 
@@ -171,16 +220,54 @@ if (typeof Population == "undefined"){
         this.realPosition.y += speedy;
       }
 
+      this.removeAllStates = function(){
+        this.states = [];
+      }
+      this.hasState = function(state){
+        return this.states.indexOf(state) != -1;
+      }
+      this.removeState = function(state){
+        var i = this.states.indexOf(state);
+        if(i != -1)
+        {
+          this.states.splice(i,1);
+        }
+      };
+      this.removeLastState = function()
+      {
+        return this.states.pop();
+      }
+
       this.roam = function(){
         //Faire un roam avec une direction et  5+-4 cases dans le path
         var finalPos = {
             x : ((Math.floor(Math.random() * Population.world.cols))),
             y : ((Math.floor(Math.random() * Population.world.rows))),
           }
+
+        this.go(finalPos,[Population.states.ROAMING]);
+      }
+
+      this.go = function(where,intention){
+        this.path = Population.finder.findPath(this.position.x,this.position.y,where.x,where.y,Population.obstaclesMap.clone());
+        this.path.shift();
+        if(this.path.length > 1)
+        {
+          this.finalPos = where;
+          this.removeState(Population.states.WAITING);
+          //On enlève le premier car c'est la position actuelle
+          this.targetPos = this.path.shift();
+          this.isMoving = true;
+          this.states = this.states.concat(intention);
+        }
       }
 
       this.draw = function(){
-        var color = this.color;
+        if(this.hasState(Population.states.SLEEPING))
+          color = '#777';
+        else
+          color = this.color;
+
         if(!this.isAlive)
         {
           color = this.deadColor;

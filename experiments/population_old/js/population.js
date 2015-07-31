@@ -10,7 +10,6 @@ var Population = {
   then : null,
   delta : null,
   actors : [],
-  objects : [],
   grid : {
     canvas : null,
     ctx : null
@@ -47,7 +46,6 @@ var Population = {
         Population.createWall(x,y);
 
     }, false);
-
     // Pathfinder initialisation
     this.finder = new PF.AStarFinder({
         allowDiagonal: false
@@ -100,14 +98,10 @@ var Population = {
     this.actors.push(actor);
   },
   loop : function () {
-    //on défini le nouveau temps
     this.world.time = (new Date()).getTime() - this.world.startTime;
     this.now = (new Date()).getTime();
 	  this.delta = this.now - this.then;
-    //On clear
     this.world.ctx.clearRect(0, 0, this.world.canvas.width, this.world.canvas.height);
-
-    //on rempli la map d'obstacles
     this.obstaclesMap = new PF.Grid(this.world.cols,this.world.rows);
     for (var i = 0; i < this.wallMap.length; i++) {
       this.obstaclesMap.setWalkableAt(this.wallMap[i][0],this.wallMap[i][1],false);
@@ -123,14 +117,8 @@ var Population = {
       }
     }
 
-    //On update les acteurs
     for (var i = 0; i < this.actors.length; i++) {
       this.actors[i].update();
-    }
-
-    //On update les objets
-    for (var i = 0; i < this.objects.length; i++) {
-      this.objects[i].update();
     }
     // request new frame
     var self = this;

@@ -1,0 +1,271 @@
+{
+  "id": "9440ff05-a61f-4408-8322-e13f11103438",
+  "title": "Basic",
+  "description": "",
+  "root": "b83d66c7-f853-4b6a-bd21-bd965cd64fba",
+  "properties": {},
+  "nodes": {
+    "5b55409c-5825-4307-8e5e-d68cae28beed": {
+      "id": "5b55409c-5825-4307-8e5e-d68cae28beed",
+      "name": "is_hungry",
+      "title": "Am I Hungry ?",
+      "description": "",
+      "properties": {
+        "hunger_treshold": 50
+      },
+      "display": {
+        "x": 528,
+        "y": -120
+      }
+    },
+    "021dcb9b-7f49-47d4-860b-c7064ecb350c": {
+      "id": "021dcb9b-7f49-47d4-860b-c7064ecb350c",
+      "name": "can_i_see",
+      "title": "Can I see some <objectType>?",
+      "description": "",
+      "properties": {
+        "objectType": "food"
+      },
+      "display": {
+        "x": 936,
+        "y": -36
+      }
+    },
+    "d290a5f3-d928-411c-aca4-e6ade99e4306": {
+      "id": "d290a5f3-d928-411c-aca4-e6ade99e4306",
+      "name": "MoveTo",
+      "title": "Move To <objectType>",
+      "description": "",
+      "properties": {
+        "objectType": "food"
+      },
+      "display": {
+        "x": 1152,
+        "y": 144
+      }
+    },
+    "51a5431a-8d6e-41eb-b983-c9d90f4debf4": {
+      "id": "51a5431a-8d6e-41eb-b983-c9d90f4debf4",
+      "name": "Eat",
+      "title": "Eat",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 1152,
+        "y": 228
+      }
+    },
+    "a2b87ab4-a4e7-4dce-bf63-ab6a4f0d943f": {
+      "id": "a2b87ab4-a4e7-4dce-bf63-ab6a4f0d943f",
+      "name": "Sequence",
+      "title": "Sequence",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 312,
+        "y": -36
+      },
+      "children": [
+        "5b55409c-5825-4307-8e5e-d68cae28beed",
+        "75a8ebe8-0cbb-414d-8c39-216d2c3caff7"
+      ]
+    },
+    "42857ccf-4e32-4c6c-a244-898f6a3789cf": {
+      "id": "42857ccf-4e32-4c6c-a244-898f6a3789cf",
+      "name": "MemSequence",
+      "title": "MemSequence",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 936,
+        "y": 144
+      },
+      "children": [
+        "7b636c2f-7004-493d-86bc-3ca92ed033a4",
+        "d290a5f3-d928-411c-aca4-e6ade99e4306",
+        "51a5431a-8d6e-41eb-b983-c9d90f4debf4"
+      ]
+    },
+    "0b36a164-c2b1-4340-92c8-2cefa3fa29fd": {
+      "id": "0b36a164-c2b1-4340-92c8-2cefa3fa29fd",
+      "name": "Sequence",
+      "title": "Sequence",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 732,
+        "y": 48
+      },
+      "children": [
+        "021dcb9b-7f49-47d4-860b-c7064ecb350c",
+        "42857ccf-4e32-4c6c-a244-898f6a3789cf"
+      ]
+    },
+    "75a8ebe8-0cbb-414d-8c39-216d2c3caff7": {
+      "id": "75a8ebe8-0cbb-414d-8c39-216d2c3caff7",
+      "name": "Priority",
+      "title": "Priority",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 528,
+        "y": 48
+      },
+      "children": [
+        "0b36a164-c2b1-4340-92c8-2cefa3fa29fd"
+      ]
+    },
+    "7b636c2f-7004-493d-86bc-3ca92ed033a4": {
+      "id": "7b636c2f-7004-493d-86bc-3ca92ed033a4",
+      "name": "choose",
+      "title": "Choose <objectType>",
+      "description": "",
+      "properties": {
+        "objectType": "food"
+      },
+      "display": {
+        "x": 1152,
+        "y": 48
+      }
+    },
+    "4dcb586b-efea-4fcd-9332-6e07a1314a52": {
+      "id": "4dcb586b-efea-4fcd-9332-6e07a1314a52",
+      "name": "Priority",
+      "title": "Priority",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": -276,
+        "y": -132
+      },
+      "children": []
+    },
+    "b83d66c7-f853-4b6a-bd21-bd965cd64fba": {
+      "id": "b83d66c7-f853-4b6a-bd21-bd965cd64fba",
+      "name": "Priority",
+      "title": "Priority",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 108,
+        "y": 168
+      },
+      "children": [
+        "a2b87ab4-a4e7-4dce-bf63-ab6a4f0d943f",
+        "224d397b-a434-4228-80ae-5ec7811474fa"
+      ]
+    },
+    "224d397b-a434-4228-80ae-5ec7811474fa": {
+      "id": "224d397b-a434-4228-80ae-5ec7811474fa",
+      "name": "MemSequence",
+      "title": "MemSequence",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 312,
+        "y": 360
+      },
+      "children": [
+        "be514773-684d-4a69-896f-b8d49732c932",
+        "f9608c24-da6c-41a3-9114-0920ee1a3bba"
+      ]
+    },
+    "be514773-684d-4a69-896f-b8d49732c932": {
+      "id": "be514773-684d-4a69-896f-b8d49732c932",
+      "name": "RoamRandom",
+      "title": "Roam Random",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 528,
+        "y": 312
+      }
+    },
+    "f9608c24-da6c-41a3-9114-0920ee1a3bba": {
+      "id": "f9608c24-da6c-41a3-9114-0920ee1a3bba",
+      "name": "MoveTo",
+      "title": "Move To <objectType>",
+      "description": "",
+      "properties": {
+        "objectType": "position"
+      },
+      "display": {
+        "x": 528,
+        "y": 408
+      }
+    }
+  },
+  "display": {
+    "camera_x": 385,
+    "camera_y": 435.5,
+    "camera_z": 1,
+    "x": -96,
+    "y": 168
+  },
+  "custom_nodes": [
+    {
+      "name": "is_hungry",
+      "category": "condition",
+      "title": "Am I Hungry ?",
+      "description": null,
+      "properties": {
+        "hunger_treshold": 50
+      }
+    },
+    {
+      "name": "can_i_see",
+      "category": "condition",
+      "title": "Can I see some ?",
+      "description": null,
+      "properties": {
+        "objectType": "food"
+      }
+    },
+    {
+      "name": "have_i_target",
+      "category": "condition",
+      "title": "Have I a target ?",
+      "description": null,
+      "properties": {}
+    },
+    {
+      "name": "can_i_reach_target",
+      "category": "condition",
+      "title": "Can I reach target ?",
+      "description": null,
+      "properties": {}
+    },
+    {
+      "name": "MoveTo",
+      "category": "action",
+      "title": "Move To <objectType>",
+      "description": null,
+      "properties": {
+        "objectType": "food"
+      }
+    },
+    {
+      "name": "Eat",
+      "category": "action",
+      "title": "Eat",
+      "description": null,
+      "properties": {}
+    },
+    {
+      "name": "RoamRandom",
+      "category": "action",
+      "title": "Roam Random",
+      "description": null,
+      "properties": {}
+    },
+    {
+      "name": "choose",
+      "category": "action",
+      "title": "Choose <objectType>",
+      "description": null,
+      "properties": {
+        "objectType": "food"
+      }
+    }
+  ]
+}

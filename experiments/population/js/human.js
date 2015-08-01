@@ -11,7 +11,7 @@ if (typeof Population == "undefined"){
   Population.Human = function(options){
     return new function(){
       //Vitesse de pensée (et mouvement)
-      this.thinkRate = 200; //On pense toutes les secondes
+      this.thinkRate = 1; //On pense toutes les secondes
       this.sightRange = 5;
 
       //Variables internes
@@ -24,7 +24,6 @@ if (typeof Population == "undefined"){
       this.memory = new b3.Blackboard();
       this.type = 'human';
       this.hasArrived = true;
-      this.maxEnergy = 5 + Math.floor(Math.random() * 5);
       this.isAlive = true;
       this.deadColor = '#eee';
       this.status = '';
@@ -41,7 +40,9 @@ if (typeof Population == "undefined"){
         hungerTreshold  : 20 + Math.floor(Math.random() * 50) ,
         love    : 0,
         food   : 100,
-        energy  : this.maxEnergy,
+        energy  : 100 + Math.floor(Math.random() * 50),
+        energyTreshold  : 20,
+        maxEnergy : 100 + Math.floor(Math.random() * 50),
         beauty  : 20 + Math.floor(Math.random() * 100)
       };
       //Apparence
@@ -75,6 +76,7 @@ if (typeof Population == "undefined"){
       this.update = function(){
         if(this.isAlive)
         {
+
           if(this.thinkedTime == null || Population.world.time - this.thinkedTime > this.thinkRate){
             this.think();
           }
@@ -100,10 +102,16 @@ if (typeof Population == "undefined"){
       }
 
       this.think = function () {
-        this.percieve();
+
         //Si on est arrivé, on se prépare à bouger à la prochaine case;
         if(this.hasArrived)
         {
+          this.percieve();
+          if(this.attributes.life <= 0)
+          {
+            this.isAlive = false;
+            return;
+          }
           //Quand on bouge ça fait perdre de l'énergie
           //TODO : quand on attaque, baise aussi
           this.attributes.energy--;
@@ -172,12 +180,15 @@ if (typeof Population == "undefined"){
         return (cchoose.length > 0)?cchoose[Math.floor(Math.random()*cchoose.length)]:null;
       }
       this.sleep = function(){
-        this.attributes.energy+=2;
-        if(this.attributes.energy >= this.maxEnergy)
+        if(this.attributes.energy > this.attributes.maxEnergy)
         {
-          // TODO: return success
+          this.status = '';
+          return b3.SUCCESS;
         }else {
-          // return running
+          this.status = "sleeping";
+          this.attributes.energy+=2;
+          this.attributes.hunger+=0.25;
+          return b3.RUNNING;
         }
       }
 
@@ -191,7 +202,7 @@ if (typeof Population == "undefined"){
         if(target.attributes.food > 0 && this.attributes.hunger > 0)
         {
           this.attributes.hunger-=1;
-          this.attributes.life+=0.5;
+          this.attributes.life+=0.1;
           target.attributes.food--;
           this.status = "eating";
           return b3.RUNNING;
@@ -224,6 +235,10 @@ if (typeof Population == "undefined"){
         if(!this.isAlive)
         {
           color = this.deadColor;
+        }
+        if(this.status == 'sleeping')
+        {
+          color = '#949494';
         }
         var ctx = Population.world.ctx;
         ctx.beginPath();

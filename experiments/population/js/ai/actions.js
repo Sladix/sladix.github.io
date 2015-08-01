@@ -12,6 +12,7 @@ _action('MoveTo',{
      var target = tick.blackboard.get('target');
      if(agent.moveTo(target.position))
      {
+       tick.target.attributes.energy--;
        return b3.RUNNING;
      }else if (agent.position.x != target.position.x || agent.position.y != target.position.y ) {
        return b3.FAILURE;
@@ -26,6 +27,12 @@ _action('Eat',{
   tick : function(tick){
      var target = tick.blackboard.get('target');
      return tick.target.eat(target);
+    }
+})
+
+_action('Sleep',{
+  tick : function(tick){
+     return tick.target.sleep();
     }
 })
 

@@ -27,6 +27,7 @@ if (typeof Population == "undefined"){
       this.maxEnergy = 5 + Math.floor(Math.random() * 5);
       this.isAlive = true;
       this.deadColor = '#eee';
+      this.status = '';
       //Options par défaut
       options = options || {};
       options.position = options.hasOwnProperty('position')?options.position:{
@@ -37,7 +38,7 @@ if (typeof Population == "undefined"){
         life    : 20 + Math.floor(Math.random() * 50),
         anger   : 0,
         hunger  : 0,
-        hungerTreshold  : 40,
+        hungerTreshold  : 20 + Math.floor(Math.random() * 50) ,
         love    : 0,
         food   : 100,
         energy  : this.maxEnergy,
@@ -99,8 +100,6 @@ if (typeof Population == "undefined"){
       }
 
       this.think = function () {
-        //Vivre ça donne faim
-        this.attributes.hunger++;
         this.percieve();
         //Si on est arrivé, on se prépare à bouger à la prochaine case;
         if(this.hasArrived)
@@ -141,6 +140,10 @@ if (typeof Population == "undefined"){
         {
           this.finalPos = position;
         }
+        if(Population.Tools.getDistance(this.position,this.finalPos) == 0)
+        {
+          return false;
+        }
         this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
         this.path.shift();
 
@@ -166,7 +169,7 @@ if (typeof Population == "undefined"){
             cchoose.push(this.perception.objects[i]);
           }
         }
-        return (cchoose.length > 0)?cchoose[Math.floor(Math.random()*items.length)]:null;
+        return (cchoose.length > 0)?cchoose[Math.floor(Math.random()*cchoose.length)]:null;
       }
       this.sleep = function(){
         this.attributes.energy+=2;
@@ -179,19 +182,21 @@ if (typeof Population == "undefined"){
       }
 
       this.eat = function(target){
-        if(Population.tools.getDistance(this,target) != 0)
+        if(Population.Tools.getDistance(this.position,target.position) != 0)
         {
           console.log('possible bug getDistance')
           return b3.FAILURE;
         }
 
-        if(target.attributes.food > 0 && this.attributes.hunger > this.attributes.hungerTreshold)
+        if(target.attributes.food > 0 && this.attributes.hunger > 0)
         {
-          this.attributes.hunger--;
+          this.attributes.hunger-=1;
           this.attributes.life+=0.5;
           target.attributes.food--;
+          this.status = "eating";
           return b3.RUNNING;
         }else {
+          this.status = '';
           return b3.SUCCESS;
         }
       }

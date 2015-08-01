@@ -9,10 +9,11 @@
 _action('MoveTo',{
   tick : function(tick){
      var agent = tick.target;
-     if(agent.moveTo(tick.blackboard.get('target').position))
+     var target = tick.blackboard.get('target');
+     if(agent.moveTo(target.position))
      {
        return b3.RUNNING;
-     }else if (agent.position.x != agent.target.position.x || agent.position.y != agent.target.position.y ) {
+     }else if (agent.position.x != target.position.x || agent.position.y != target.position.y ) {
        return b3.FAILURE;
      }else
      {
@@ -23,8 +24,8 @@ _action('MoveTo',{
 
 _action('Eat',{
   tick : function(tick){
-     var agent = tick.target;
-     return agent.eat(agent.target);
+     var target = tick.blackboard.get('target');
+     return tick.target.eat(target);
     }
 })
 
@@ -37,7 +38,11 @@ _action('RoamRandom',{
 
 _action('Choose',{
   tick : function(tick){
-     var obj = tick.target.choose(this.properties.type);
+    if(tick.blackboard.get('target') != null && tick.blackboard.get('target').type==this.properties.objectType)
+    {
+      return b3.SUCCESS;
+    }
+     var obj = tick.target.choose(this.properties.objectType);
      if(obj != null)
      {
        tick.blackboard.set('target',obj);

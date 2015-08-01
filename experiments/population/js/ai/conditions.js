@@ -7,12 +7,13 @@
 
 _condition('is_hungry',{
   tick : function(tick){
-      if(tick.target.attibutes.hunger >= tick.target.attributes.hungerTreshold)
+      if(tick.target.status == 'eating' || tick.target.attributes.hunger >= tick.target.attributes.hungerTreshold)
       {
         return b3.SUCCESS;
       }
       else
       {
+        tick.target.attributes.hunger++;
         return b3.FAILURE;
       }
    }
@@ -21,8 +22,8 @@ _condition('is_hungry',{
 _condition('can_i_see',{
   tick : function(tick){
     var agent = tick.target;
-    for (var i = 0; i < agent.perception[agent.target.class].length; i++) {
-      if(agent.perception[agent.target.class][i] == tick.blackboard.get('type'))
+    for (var i = 0; i < agent.perception.objects.length; i++) {
+      if(agent.perception.objects[i].type == this.properties.objectType)
       {
         return b3.SUCCESS;
       }

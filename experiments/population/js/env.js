@@ -24,6 +24,7 @@ Population.Food = function(options){
       food: 50
     };
     options.color = options.hasOwnProperty('color')?options.color:'#00FF00';
+    this.class = 'objects';
     this.type = 'food';
     this.position = options.position;
     this.attributes = options.attributes;

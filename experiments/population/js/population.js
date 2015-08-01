@@ -24,6 +24,7 @@ var Population = {
     canvas : null,
     ctx : null
   },
+  ai : null,
   wallMap : [],
   obstaclesMap :  null,
   finder  : null,
@@ -53,6 +54,14 @@ var Population = {
         allowDiagonal: false
     });
 
+    //BT initialisation
+    this.ai = {'agent': new b3.BehaviorTree()};
+    $.getJSON('js/trees/basic.json', function(tree) {
+      self.ai.agent.load(tree, AI);
+    });
+
+
+    //On init le delta
     this.then = new Date().getTime();
     this.drawGrid();
     //On lance la boucle

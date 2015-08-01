@@ -1,29 +1,6 @@
 Population.Tools = {
- canSee : function(what,actor)
- {
-
- },
- getNearestFoodSource : function(actor)
- {
-     var pos = actor.position;
-     var mix = actor.position.x - actor.sightRange;
-     var max = actor.position.x + actor.sightRange;
-     var miy = actor.position.y - actor.sightRange;
-     var may = actor.position.y + actor.sightRange;
-
-     for (var i = 0; i < Population.objects.length; i++) {
-       if(Population.objects[i].position.x >= mix && Population.objects[i].position.x <= max && Population.objects[i].position.y >= miy && Population.objects[i].position.y <= may && Population.objects[i].type == 'food')
-        return Population.objects[i];
-     }
-
-     for (var i = 0; i < Population.actors.length; i++) {
-       if(Population.actors[i].position.x >= mix && Population.actors[i].position.x <= max && Population.actors[i].position.y >= miy && Population.actors[i].position.y <= may && Population.actors[i].isAlive == false)
-        return Population.actors[i];
-     }
-     return null;
- },
- getNearestSleep : function(actor){
-
+ getDistance : function(pos1,pos2){
+   return Math.round(Math.sqrt( (pos2.position.x-=pos1.position.x)*pos2.position.x + (pos2.position.y-=pos1.position.y)*pos2.position.y ));
  },
  removeObject : function(obj){
    var i = Population.objects.indexOf(obj);

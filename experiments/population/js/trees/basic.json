@@ -117,7 +117,7 @@
     },
     "7b636c2f-7004-493d-86bc-3ca92ed033a4": {
       "id": "7b636c2f-7004-493d-86bc-3ca92ed033a4",
-      "name": "choose",
+      "name": "Choose",
       "title": "Choose <objectType>",
       "description": "",
       "properties": {
@@ -259,7 +259,7 @@
       "properties": {}
     },
     {
-      "name": "choose",
+      "name": "Choose",
       "category": "action",
       "title": "Choose <objectType>",
       "description": null,

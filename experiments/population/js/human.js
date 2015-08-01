@@ -13,20 +13,19 @@ if (typeof Population == "undefined"){
       //Vitesse de pensée (et mouvement)
       this.thinkRate = 200; //On pense toutes les secondes
       this.sightRange = 5;
+
       //Variables internes
       this.thinkedTime = null;
       this.speed = this.thinkRate / 60;
       this.path = [];
-      this.target = null;
+      this.class = 'actors';
       this.targetPos = null;
       this.finalPos = null;
-      this.isMoving = false;
+      this.memory = new b3.Blackboard();
+      this.type = 'human';
       this.hasArrived = true;
-      this.isBusy = false;
       this.maxEnergy = 5 + Math.floor(Math.random() * 5);
-      this.states = [0];
       this.isAlive = true;
-      this.target = null;
       this.deadColor = '#eee';
       //Options par défaut
       options = options || {};
@@ -38,9 +37,9 @@ if (typeof Population == "undefined"){
         life    : 20 + Math.floor(Math.random() * 50),
         anger   : 0,
         hunger  : 0,
-        hungerTreshold  : 50,
+        hungerTreshold  : 40,
         love    : 0,
-        flesh   : 100,
+        food   : 100,
         energy  : this.maxEnergy,
         beauty  : 20 + Math.floor(Math.random() * 100)
       };
@@ -102,6 +101,7 @@ if (typeof Population == "undefined"){
       this.think = function () {
         //Vivre ça donne faim
         this.attributes.hunger++;
+        this.percieve();
         //Si on est arrivé, on se prépare à bouger à la prochaine case;
         if(this.hasArrived)
         {
@@ -109,12 +109,32 @@ if (typeof Population == "undefined"){
           //TODO : quand on attaque, baise aussi
           this.attributes.energy--;
           //ici on tick le BT
+          Population.ai.agent.tick(this, this.memory);
 
         }
 
         this.thinkedTime = (new Date()).getTime() - Population.world.startTime;
       }
-
+      this.percieve = function(){
+        this.perception = {
+          objects : [],
+          actors : []
+        };
+        var mix = this.position.x - this.sightRange;
+        var max = this.position.x + this.sightRange;
+        var miy = this.position.y - this.sightRange;
+        var may = this.position.y + this.sightRange;
+        var things = ['actors','objects'];
+        for (var j = 0; j < things.length; j++) {
+          for (var i = 0; i < Population[things[j]].length; i++) {
+            //On se perçoit aussi du coup luelueluluzlz
+            if(Population[things[j]][i].position.x >= mix && Population[things[j]][i].position.x <= max && Population[things[j]][i].position.y >= miy && Population[things[j]][i].position.y <= may)
+            {
+              this.perception[things[j]].push(Population[things[j]][i]);
+            }
+          }
+        }
+      }
       // Si un param est passé c'est la destination finale
       this.moveTo = function(position){
         if(typeof position != "undefined" && this.finalPos != position)
@@ -127,16 +147,27 @@ if (typeof Population == "undefined"){
         if(this.path.length == 0)
         {
           this.targetPos = null;
-          //On est arrivé à destination
+          return false;
+          //On est arrivé à destination ou on ne peut pas y aller
         }else {
           this.hasArrived = false;
           //Recalculer le path
           this.targetPos = this.path.shift();
           //On "réserve" la case
           Population.obstaclesMap.setWalkableAt(this.targetPos[0],this.targetPos[1],false);
+          return true;
         }
       }
-
+      this.choose = function(type){
+        var cchoose = [];
+        for (var i = 0; i < this.perception.objects.length; i++) {
+          if(this.perception.objects[i].type == type)
+          {
+            cchoose.push(this.perception.objects[i]);
+          }
+        }
+        return (cchoose.length > 0)?cchoose[Math.floor(Math.random()*items.length)]:null;
+      }
       this.sleep = function(){
         this.attributes.energy+=2;
         if(this.attributes.energy >= this.maxEnergy)
@@ -148,18 +179,20 @@ if (typeof Population == "undefined"){
       }
 
       this.eat = function(target){
+        if(Population.tools.getDistance(this,target) != 0)
+        {
+          console.log('possible bug getDistance')
+          return b3.FAILURE;
+        }
+
         if(target.attributes.food > 0 && this.attributes.hunger > this.attributes.hungerTreshold)
         {
-          target.isBusy = true;
           this.attributes.hunger--;
-          this.attributes.life++;
+          this.attributes.life+=0.5;
           target.attributes.food--;
-          // TODO: return running
+          return b3.RUNNING;
         }else {
-          // TODO return bt.success
-          target.isBusy = false;
-          if(target.attributes.food <=0)
-            target.color = '#0000FF';
+          return b3.SUCCESS;
         }
       }
 
@@ -177,6 +210,8 @@ if (typeof Population == "undefined"){
             x : ((Math.floor(Math.random() * Population.world.cols))),
             y : ((Math.floor(Math.random() * Population.world.rows))),
           }
+
+        return {type:null,position:finalPos};
       }
 
       this.draw = function(){

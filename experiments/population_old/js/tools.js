@@ -3,16 +3,23 @@ Population.Tools = {
  {
 
  },
- getNearestBody : function(actor)
+ getNearest : function(what,type,position,sightRange)
  {
-     var pos = actor.position;
-     var mix = actor.position.x - actor.sightRange;
-     var max = actor.position.x + actor.sightRange;
-     var miy = actor.position.y - actor.sightRange;
-     var may = actor.position.y + actor.sightRange;
-     for (var i = 0; i < Population.actors.length; i++) {
-       if(Population.actors[i].position.x >= mix && Population.actors[i].position.x <= max && Population.actors[i].position.y >= miy && Population.actors[i].position.y <= may && Population.actors[i].isAlive == false)
-        return Population.actors[i];
+     var pos = position;
+     var mix = position.x - sightRange;
+     var max = position.x + sightRange;
+     var miy = position.y - sightRange;
+     var may = position.y + sightRange;
+
+     for (var i = 0; i < Population[what].length; i++) {
+       if(Population[what][i].position.x >= mix && Population[what][i].position.x <= max && Population[what][i].position.y >= miy && Population[what][i].position.y <= may)
+        if(what == "actors" && type == "food" && Population.actors[i].isAlive == false)
+        {
+          return Population.actors[i];
+        }else if(what == "objects" && Population.objects[i].type == 'food')
+        {
+          return Population.objects[i];
+        }
      }
      return null;
  },

@@ -44,7 +44,8 @@ var Population = {
     var elemTop = this.grid.canvas.offsetTop;
 
     var self = this;
-    this.grid.canvas.addEventListener('click', function(event) {
+    this.world.canvas.addEventListener('click', function(event) {
+      console.log('ok');
         var x = Math.floor((event.pageX - elemLeft - self.world.gridSize) / 10),
             y = Math.floor((event.pageY - elemTop - self.world.gridSize) / 10);
         Population.createWall(x,y);

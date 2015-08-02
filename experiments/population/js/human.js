@@ -255,7 +255,7 @@ if (typeof Population == "undefined"){
         ctx.font = "10px Helvetica";
         ctx.fillStyle = "#111";
         ctx.textAlign = "center";
-        ctx.fillText(this.name, this.realPosition.x + (Population.world.gridSize/2), this.realPosition.y);
+        ctx.fillText(this.name, this.realPosition.x + (Population.world.gridSize/2), this.realPosition.y - 2);
 
         // if(this.finalPos != null && this.isAlive)
         // {

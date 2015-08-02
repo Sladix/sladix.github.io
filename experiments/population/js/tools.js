@@ -18,5 +18,10 @@ Population.Tools = {
       free = false;
    }
    return free;
+ },
+ log : function(message){
+   var t = document.createElement('span');
+   t.textContent = message;
+   document.getElementById('output').appendChild(t);
  }
 }

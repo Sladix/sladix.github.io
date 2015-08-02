@@ -34,6 +34,8 @@ var Population = {
     }
     options = opts || options;
     this.world.canvas = document.getElementById(options.canvas);
+    this.world.canvas.width = this.world.cols*this.world.gridSize;
+    this.world.canvas.height = this.world.rows*this.world.gridSize;
     this.world.ctx = this.world.canvas.getContext('2d');
 
     this.grid.canvas = document.getElementById('grid');

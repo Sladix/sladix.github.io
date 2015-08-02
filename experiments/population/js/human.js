@@ -8,10 +8,11 @@ if (typeof Population == "undefined"){
   Population.locationTypes = {
     HOME : 0
   }
+  Population.names = ['John','Ryan','Brian','Robert','Nathan','Bob','Martin','Antoine','Camille','Léa'];
   Population.Human = function(options){
     return new function(){
       //Vitesse de pensée (et mouvement)
-      this.thinkRate = 1; //On pense toutes les secondes
+      this.thinkRate = 100; //On pense toutes les secondes
       this.sightRange = 5;
 
       //Variables internes
@@ -46,7 +47,7 @@ if (typeof Population == "undefined"){
         beauty  : 20 + Math.floor(Math.random() * 100)
       };
       //Apparence
-      this.name = 'John';
+      this.name = Population.names[Math.floor(Math.random()*Population.names.length)];
       this.sex = (Math.random() > 0.4)?'f':'m';
       this.color = (this.sex == 'f')?'#E219DF':'#3798EA';
 
@@ -110,6 +111,7 @@ if (typeof Population == "undefined"){
           if(this.attributes.life <= 0)
           {
             this.isAlive = false;
+            Population.Tools.log(this.name+' est mort..');
             return;
           }
           //Quand on bouge ça fait perdre de l'énergie
@@ -248,6 +250,12 @@ if (typeof Population == "undefined"){
         ctx.lineWidth = 1;
         ctx.strokeStyle = '#777';
         ctx.stroke();
+
+        //On affiche le nom
+        ctx.font = "10px Helvetica";
+        ctx.fillStyle = "#111";
+        ctx.textAlign = "center";
+        ctx.fillText(this.name, this.realPosition.x + (Population.world.gridSize/2), this.realPosition.y);
 
         // if(this.finalPos != null && this.isAlive)
         // {

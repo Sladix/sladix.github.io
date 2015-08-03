@@ -53,31 +53,36 @@ if (typeof Population == "undefined"){
         maxEnergy : 100 + Math.floor(Math.random() * 50),
         beauty  : 20 + Math.floor(Math.random() * 100)
       };
+
       //Apparence
       this.name = options.name;
       this.color = (this.sex == 'f')?'#E219DF':'#3798EA';
-
-      this.knownPlaces = {
-        safe : [{
-          x: 0,
-          y: 0,
-          weight: 10,
-          type: Population.locationTypes.HOME
-        }],
-        dangerous : [],
-        food : [],
-        sleep : []
-      };
-
+      //Attributs
       this.attributes = options.attributes;
-
+      //Position
       this.position = options.position;
 
       this.realPosition = {x:0,y:0};
       this.realPosition.x = this.position.x*Population.world.gridSize;
       this.realPosition.y = this.position.y*Population.world.gridSize;
 
-      // On initialise le BT
+      //On initialise la mémoire sociale + des objects
+      //Stocke les emplacements auxquels ont été vu des acteurs/objects
+      //TODO : Ajouter un poids qui se réduit sur le temps
+      this.memories = {
+        actors : [],
+        objects : []
+      }
+
+      //On stocke les relations avec les autres agents (les ennemis, les amis, les lovers)
+      this.relations = [];
+
+      //On stocke les possessions de l'agent (celles qu'il n'a pas sur lui)
+      this.possessions = [];
+
+      //Puis son inventaire
+      this.inventoryLimit = 10;
+      this.inventory = [];
 
       this.update = function(){
         if(this.isAlive)

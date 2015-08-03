@@ -268,13 +268,13 @@ if (typeof Population == "undefined"){
 
       this.draw = function(){
         var color = this.color;
-        if(!this.isAlive)
-        {
-          color = this.deadColor;
-        }
         if(this.status == Population.HumanStatus.SLEEPING)
         {
           color = '#949494';
+        }
+        if(!this.isAlive)
+        {
+          color = this.deadColor;
         }
         var ctx = Population.world.ctx;
         ctx.beginPath();

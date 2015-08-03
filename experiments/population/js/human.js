@@ -8,12 +8,17 @@ if (typeof Population == "undefined"){
   Population.locationTypes = {
     HOME : 0
   }
-  Population.names = ['John','Ryan','Brian','Robert','Nathan','Bob','Martin','Antoine','Camille','Léa'];
+  Population.names = {
+    males : ['John','Ryan','Brian','Robert','Nathan','Bob','Martin','Nicolas', 'Sébastien', 'Loïc', 'Michel', 'Jean-Jacque', 'Thomas', 'Alain', 'Antoine', 'Fabien', 'Jérôme'],
+    females : ['Carine', 'Sabrina', 'Géraldine', 'Emmanuelle', 'Nathalie', 'Julia', 'Camille', 'Marie', 'Inès']
+  };
   Population.Human = function(options){
     return new function(){
       //Vitesse de pensée (et mouvement)
       this.thinkRate = 100; //On pense toutes les secondes
       this.sightRange = 5;
+
+
 
       //Variables internes
       this.thinkedTime = null;
@@ -34,12 +39,14 @@ if (typeof Population == "undefined"){
         x : Math.floor(Population.world.cols/2),
         y : Math.floor(Population.world.rows/2)
       };
+      options.sex = options.hasOwnProperty('sex')?options.sex:((Math.random() > 0.4)?'f':'m');
+      this.sex = options.sex;
+      options.name = options.hasOwnProperty('name')?options.name:((this.sex == 'f')?Population.names.females[Math.floor(Math.random()*Population.names.females.length)]:Population.names.males[Math.floor(Math.random()*Population.names.males.length)]);
+
       options.attributes = options.hasOwnProperty('attributes')?options.attributes:{
         life    : 20 + Math.floor(Math.random() * 50),
-        anger   : 0,
         hunger  : 0,
         hungerTreshold  : 20 + Math.floor(Math.random() * 50) ,
-        love    : 0,
         food   : 100,
         energy  : 100 + Math.floor(Math.random() * 50),
         energyTreshold  : 20,
@@ -47,10 +54,8 @@ if (typeof Population == "undefined"){
         beauty  : 20 + Math.floor(Math.random() * 100)
       };
       //Apparence
-      this.name = Population.names[Math.floor(Math.random()*Population.names.length)];
-      this.sex = (Math.random() > 0.4)?'f':'m';
+      this.name = options.name;
       this.color = (this.sex == 'f')?'#E219DF':'#3798EA';
-
 
       this.knownPlaces = {
         safe : [{

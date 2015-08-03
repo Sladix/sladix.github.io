@@ -8,7 +8,7 @@ Population.createWall(1,3);
 Population.createWall(2,3);
 Population.createWall(3,0);
 Population.createWall(3,1);
-for (var i = 0; i <20; i++) {
+for (var i = 0; i <5; i++) {
   var options = {
     position : {
       x: Math.floor(Population.world.cols / 2),
@@ -18,15 +18,17 @@ for (var i = 0; i <20; i++) {
   var a = new Population.Human(options);
   Population.addActor(a);
 }
-
 // var options = {
-//   position : {
-//     x : 10,
-//     y : 10
-//   },
-//   attributes : {
-//     food : 50
-//   }
+//   sex : 'm',
+//   name : 'Antoine'
 // }
-// var o = new Population.Food(options);
+// var antoine = new Population.Human(options);
+// Population.addActor(antoine);
+// var options = {
+//   sex : 'f',
+//   name : 'Ines'
+// }
+// var ines = new Population.Human(options);
+// Population.addActor(ines);
+
 var f = new Population.Farm({attributes : {spawnTime : 20000}});

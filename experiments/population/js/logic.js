@@ -1,6 +1,6 @@
 //On change les défautlts
-Population.world.cols = 20;
-Population.world.rows = 20;
+Population.world.cols = 30;
+Population.world.rows = 30;
 Population.init();
 
 Population.createWall(0,3);

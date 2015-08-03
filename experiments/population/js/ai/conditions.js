@@ -7,16 +7,16 @@
 
 _condition('is_hungry',{
   tick : function(tick){
-      if(tick.target.status == 'eating' || tick.target.attributes.hunger >= tick.target.attributes.hungerTreshold || tick.target.attributes.life < tick.target.attributes.hungerTreshold)
-      {
-        if(tick.target.status != 'eating' && tick.target.attributes.hunger >= tick.target.attributes.hungerTreshold*1.5)
-          tick.target.attributes.life-=0.25;
+      if(tick.target.status != Population.HumanStatus.EATING){
+          tick.target.attributes.hunger++;
+      }
 
+      if(tick.target.status == Population.HumanStatus.EATING || tick.target.attributes.hunger >= tick.target.attributes.hungerTreshold)
+      {
         return b3.SUCCESS;
       }
       else
       {
-        tick.target.attributes.hunger++;
         return b3.FAILURE;
       }
    }
@@ -24,7 +24,7 @@ _condition('is_hungry',{
 
 _condition('is_tired',{
   tick : function(tick){
-      if(tick.target.status == 'sleeping' || tick.target.attributes.energy <= tick.target.attributes.energyTreshold)
+      if(tick.target.status == Population.HumanStatus.SLEEPING || tick.target.attributes.energy <= tick.target.attributes.energyTreshold)
       {
         return b3.SUCCESS;
       }

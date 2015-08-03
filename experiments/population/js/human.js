@@ -12,17 +12,24 @@ if (typeof Population == "undefined"){
     males : ['John','Ryan','Brian','Robert','Nathan','Bob','Martin','Nicolas', 'Sébastien', 'Loïc', 'Michel', 'Jean-Jacque', 'Thomas', 'Alain', 'Antoine', 'Fabien', 'Jérôme'],
     females : ['Carine', 'Sabrina', 'Géraldine', 'Emmanuelle', 'Nathalie', 'Julia', 'Camille', 'Marie', 'Inès']
   };
+  Population.HumanDefs = {
+    starving : 100
+  }
+  Population.HumanStatus = {
+    SLEEPING : 0,
+    EATING : 1,
+  }
   Population.Human = function(options){
     return new function(){
       //Vitesse de pensée (et mouvement)
       this.thinkRate = 100; //On pense toutes les secondes
+      this.speed = 100 / 60; // 100 pixels à la seconde
       this.sightRange = 5;
 
 
 
       //Variables internes
       this.thinkedTime = null;
-      this.speed = this.thinkRate / 60;
       this.path = [];
       this.class = 'actors';
       this.targetPos = null;
@@ -32,7 +39,7 @@ if (typeof Population == "undefined"){
       this.hasArrived = true;
       this.isAlive = true;
       this.deadColor = '#eee';
-      this.status = '';
+      this.status = null;
       //Options par défaut
       options = options || {};
       options.position = options.hasOwnProperty('position')?options.position:{
@@ -46,8 +53,9 @@ if (typeof Population == "undefined"){
       options.attributes = options.hasOwnProperty('attributes')?options.attributes:{
         life    : 20 + Math.floor(Math.random() * 50),
         hunger  : 0,
-        hungerTreshold  : 20 + Math.floor(Math.random() * 50) ,
+        hungerTreshold  : Population.HumanDefs.starving/2,//50 + Math.floor(Math.random() * 50) ,
         food   : 100,
+        foodValue   : 1,
         energy  : 100 + Math.floor(Math.random() * 50),
         energyTreshold  : 20,
         maxEnergy : 100 + Math.floor(Math.random() * 50),
@@ -117,6 +125,9 @@ if (typeof Population == "undefined"){
         //Si on est arrivé, on se prépare à bouger à la prochaine case;
         if(this.hasArrived)
         {
+          if(this.attributes.hunger > Population.HumanDefs.starving && this.status != Population.HumanStatus.EATING)
+            this.attributes.life-=0.25;
+
           this.percieve();
           if(this.attributes.life <= 0)
           {
@@ -124,9 +135,6 @@ if (typeof Population == "undefined"){
             Population.Tools.log(this.name+' est mort..');
             return;
           }
-          //Quand on bouge ça fait perdre de l'énergie
-          //TODO : quand on attaque, baise aussi
-          this.attributes.energy--;
           //ici on tick le BT
           Population.ai.agent.tick(this, this.memory);
 
@@ -186,18 +194,22 @@ if (typeof Population == "undefined"){
         for (var i = 0; i < this.perception.objects.length; i++) {
           if(this.perception.objects[i].type == type)
           {
+            // if(type == 'food')
+            // {
+            //   //Choix du type de nourriture
+            // }
             cchoose.push(this.perception.objects[i]);
           }
         }
-        return (cchoose.length > 0)?cchoose[Math.floor(Math.random()*cchoose.length)]:null;
+        return (cchoose.length > 0)?cchoose.shift():null;
       }
       this.sleep = function(){
         if(this.attributes.energy > this.attributes.maxEnergy)
         {
-          this.status = '';
+          this.status = null;
           return b3.SUCCESS;
         }else {
-          this.status = "sleeping";
+          this.status = Population.HumanStatus.SLEEPING;
           this.attributes.energy+=2;
           this.attributes.hunger+=0.25;
           return b3.RUNNING;
@@ -211,15 +223,27 @@ if (typeof Population == "undefined"){
           return b3.FAILURE;
         }
 
-        if(target.attributes.food > 0 && this.attributes.hunger > 0)
+
+
+        if(this.attributes.hunger > 0)
         {
-          this.attributes.hunger-=1;
-          this.attributes.life+=0.1;
-          target.attributes.food--;
-          this.status = "eating";
+          //Si on a encore faim mais que la nourrite a plus de bouffe,
+          // On retourne success pour pouvoir intérompre l'arbre
+          if(target.attributes.food <= 0)
+          {
+            this.memory.set('target',null);
+            return b3.SUCCESS;
+          }
+          this.attributes.hunger = this.attributes.hunger - target.attributes.foodValue;
+          target.attributes.food = target.attributes.food - target.attributes.foodValue;
+          this.status = Population.HumanStatus.EATING;
+          if(target.attributes.food <= 0)
+          {
+            return b3.SUCCESS;
+          }
           return b3.RUNNING;
         }else {
-          this.status = '';
+          this.status = null;
           return b3.SUCCESS;
         }
       }
@@ -248,7 +272,7 @@ if (typeof Population == "undefined"){
         {
           color = this.deadColor;
         }
-        if(this.status == 'sleeping')
+        if(this.status == Population.HumanStatus.SLEEPING)
         {
           color = '#949494';
         }
@@ -269,12 +293,13 @@ if (typeof Population == "undefined"){
 
         // if(this.finalPos != null && this.isAlive)
         // {
+        //   ctx.beginPath();
+        //   // ctx.moveTo(this.position.x*Population.world.gridSize + (Population.world.gridSize /2),this.position.y*Population.world.gridSize + (Population.world.gridSize /2))
         //   for (var i = 0; i < this.path.length; i++) {
-        //     ctx.beginPath();
-        //     ctx.rect(this.path[i][0]*Population.world.gridSize,this.path[i][1]*Population.world.gridSize, Population.world.gridSize, Population.world.gridSize);
-        //     ctx.fillStyle = "#FF0000";
-        //     ctx.fill();
+        //     ctx.lineTo(this.path[i][0]*Population.world.gridSize + (Population.world.gridSize /2),this.path[i][1]*Population.world.gridSize + (Population.world.gridSize /2));
+        //     ctx.strokeStyle = '#FF0000';
         //   }
+        //   ctx.stroke();
         // }
 
       }

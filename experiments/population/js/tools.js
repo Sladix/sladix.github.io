@@ -20,7 +20,7 @@ Population.Tools = {
    return free;
  },
  log : function(message){
-   var t = document.createElement('span');
+   var t = document.createElement('li');
    t.textContent = message;
    document.getElementById('output').appendChild(t);
  }

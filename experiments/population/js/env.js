@@ -50,9 +50,6 @@ Population.Farm = function(options){
               position : {
                 x : i,
                 y : j
-              },
-              attributes : {
-                food : 50
               }
             }
             var o = new Population.Food(options);
@@ -79,7 +76,8 @@ Population.Food = function(options){
       y : Math.floor(Population.world.rows/2)
     };
     options.attributes = options.hasOwnProperty('attributes')?options.attributes:{
-      food: 50
+      food      : 5,
+      foodValue : 2 + Math.floor(Math.random() * 5)
     };
     options.color = options.hasOwnProperty('color')?options.color:'#00FF00';
     this.class = 'objects';

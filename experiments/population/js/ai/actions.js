@@ -38,8 +38,8 @@ _action('Sleep',{
 
 _action('RoamRandom',{
   tick : function(tick){
-     tick.blackboard.set('target',tick.target.roam())
-     return b3.SUCCESS;
+    tick.blackboard.set('target',tick.target.roam())
+      return b3.SUCCESS;
     }
 })
 

@@ -1,6 +1,6 @@
 //On change les défautlts
-Population.world.cols = 30;
-Population.world.rows = 30;
+Population.world.cols = 20;
+Population.world.rows = 20;
 Population.init();
 
 Population.createWall(0,3);
@@ -26,9 +26,9 @@ for (var i = 0; i <5; i++) {
 // Population.addActor(antoine);
 // var options = {
 //   sex : 'f',
-//   name : 'Ines'
+//   name : 'Camille'
 // }
-// var ines = new Population.Human(options);
-// Population.addActor(ines);
+// var camille = new Population.Human(options);
+// Population.addActor(camille);
 
 var f = new Population.Farm({attributes : {spawnTime : 20000}});

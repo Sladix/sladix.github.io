@@ -132,7 +132,7 @@ if (typeof Population == "undefined"){
           if(this.attributes.life <= 0)
           {
             this.isAlive = false;
-            Population.Tools.log(this.name+' est mort..');
+            Population.Tools.log(this.name+' est mort'+((this.sex == 'f')?'e':'')+'..');
             return;
           }
           //ici on tick le BT
@@ -167,13 +167,19 @@ if (typeof Population == "undefined"){
         if(typeof position != "undefined" && this.finalPos != position)
         {
           this.finalPos = position;
+          this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
+          this.path.shift();
         }
         if(Population.Tools.getDistance(this.position,this.finalPos) == 0)
         {
           return false;
         }
-        this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
-        this.path.shift();
+        //Si la prochaine case est bloquée, on recalcul le chemin
+        if(this.path.length > 0 && Population.obstaclesMap.isWalkableAt(this.path[0][0],this.path[0][1]) === false)
+        {
+          this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
+          this.path.shift();
+        }
 
         if(this.path.length == 0)
         {

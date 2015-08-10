@@ -110,6 +110,8 @@ var Population = {
   },
   addActor : function (actor) {
     this.actors.push(actor);
+    //On retourne l'id/index, à changer car si on enlève des acteurs ça va chier
+    return this.actors.length-1;
   },
   loop : function () {
     //on défini le nouveau temps

@@ -31,6 +31,7 @@ if (typeof Population == "undefined"){
       //Variables internes
       this.thinkedTime = null;
       this.path = [];
+      this.id = null;
       this.class = 'actors';
       this.targetPos = null;
       this.finalPos = null;
@@ -74,7 +75,7 @@ if (typeof Population == "undefined"){
       this.realPosition.x = this.position.x*Population.world.gridSize;
       this.realPosition.y = this.position.y*Population.world.gridSize;
 
-      //On initialise la mémoire sociale + des objects
+      //On initialise la mémoire spatiale des objects/acteurs
       //Stocke les emplacements auxquels ont été vu des acteurs/objects
       //TODO : Ajouter un poids qui se réduit sur le temps
       this.memories = {
@@ -91,7 +92,8 @@ if (typeof Population == "undefined"){
       //Puis son inventaire
       this.inventoryLimit = 10;
       this.inventory = [];
-
+      
+      this.id = Population.addActor(this);
       this.update = function(){
         if(this.isAlive)
         {

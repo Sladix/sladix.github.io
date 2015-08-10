@@ -16,7 +16,6 @@ for (var i = 0; i <5; i++) {
     }
   }
   var a = new Population.Human(options);
-  Population.addActor(a);
 }
 // var options = {
 //   sex : 'm',

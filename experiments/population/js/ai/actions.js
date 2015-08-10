@@ -10,6 +10,10 @@ _action('MoveTo',{
   tick : function(tick){
      var agent = tick.target;
      var target = tick.blackboard.get('target');
+
+     if(target == null || typeof target == 'undefined')
+      return b3.FAILURE;
+      
      if(agent.moveTo(target.position))
      {
        tick.target.attributes.energy--;

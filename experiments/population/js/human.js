@@ -45,6 +45,7 @@ if (typeof Population == "undefined"){
       this.deadColor = '#eee';
       this.status = null;
       this.mood = 'good';
+      this.interrupted = false;
       //Options par défaut
       options = options || {};
       options.position = options.hasOwnProperty('position')?options.position:{
@@ -133,6 +134,9 @@ if (typeof Population == "undefined"){
         //Si on est arrivé, on se prépare à bouger à la prochaine case;
         if(this.hasArrived)
         {
+          if(this.interrupted)
+            return;
+
           if(this.status == null)
             this.attributes.bored++;
 
@@ -282,13 +286,17 @@ if (typeof Population == "undefined"){
       }
 
       this.speak = function(target){
-        if(target.status == Population.HumanStatus.EATING)
+        if(target == null || target.status == Population.HumanStatus.EATING)
+        {
+          this.status = null;
           return b3.FAILURE;
-          
+        }
+
         if(this.status == null)
         {
           Population.Tools.log(this.name+' discute avec '+target.name);
           target.status = Population.HumanStatus.SPEAKING;
+          target.interrupted = true;
           this.status = target.status;
         }
 
@@ -299,6 +307,7 @@ if (typeof Population == "undefined"){
         {
           this.status = null;
           target.status = null;
+          target.interrupted = false;
           return b3.SUCCESS;
         }
 

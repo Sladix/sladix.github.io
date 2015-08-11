@@ -53,7 +53,6 @@ var Population = {
 
     var self = this;
     this.world.canvas.addEventListener('click', function(event) {
-        console.log(event.pageX);
         var x = Math.floor((event.pageX - elemLeft ) / self.world.gridSize),
             y = Math.floor((event.pageY - elemTop ) / self.world.gridSize);
 
@@ -61,7 +60,7 @@ var Population = {
         if(self.selectedTool == 'wall')
           Population.createWall(x,y);
         else if(self.selectedTool == 'inspect')
-          Population.Tools.displayInfos(x,y);
+          Population.Tools.displayInfos({x:x,y:y});
 
     }, false);
     //Pour mettre le jeu en pause

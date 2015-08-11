@@ -9,6 +9,11 @@ function getNearest(a,b)
   }
 
 }
+var translations = {
+  0 : 'Dors',
+  1 : 'Mange',
+  2 : 'Discute'
+}
 Population.Tools = {
   getDistance : function(pos1,pos2){
    var x1 = pos1.x,x2 = pos2.x;
@@ -55,6 +60,25 @@ Population.Tools = {
   },
   displayInfos : function(position)
   {
-
+    var infos = document.getElementById('informations');
+    infos.innerHTML = '';
+    var target = null;
+    for (var i = 0; i < Population.actors.length; i++) {
+      if(Math.round(Population.actors[i].realPosition.x/Population.world.gridSize) == position.x && Math.round(Population.actors[i].realPosition.y/Population.world.gridSize) == position.y)
+      {
+        target = Population.actors[i];
+      }
+    }
+    if(target != null)
+    {
+      var p = document.createElement('p');
+      p.innerHTML = target.name+' | status : '+((target.status != null)?translations[target.status]:'Erre');
+      p.innerHTML += '<br/> Vie : '+target.life;
+      p.innerHTML += '<br/> Humeur : '+target.mood;
+      p.innerHTML += '<br/> Faim : '+target.attributes.hunger;
+      p.innerHTML += '<br/> Energie : '+target.attributes.energy;
+      p.innerHTML += '<br/> Ennui : '+target.attributes.bored;
+      infos.appendChild(p);
+    }
   }
 }

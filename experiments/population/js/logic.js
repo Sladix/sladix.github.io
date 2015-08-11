@@ -11,8 +11,8 @@ Population.createWall(3,1);
 for (var i = 0; i <3; i++) {
   var options = {
     position : {
-      x: Math.floor(Population.world.cols / 2),
-      y: i
+      x: Math.floor(Population.world.cols / 2)-i,
+      y: Math.floor(Population.world.cols / 2)
     }
   }
   var a = new Population.Human(options);

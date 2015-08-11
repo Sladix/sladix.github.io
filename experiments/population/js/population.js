@@ -12,6 +12,7 @@ var Population = {
   pause : false,
   actors : [],
   objects : [],
+  selectedTool : 'wall',
   grid : {
     canvas : null,
     ctx : null
@@ -43,21 +44,34 @@ var Population = {
     this.grid.canvas.height = this.world.canvas.height;
     this.grid.canvas.width = this.world.canvas.width;
     this.grid.ctx = this.grid.canvas.getContext('2d');
+    var sc = document.getElementById('scene-container');
+    sc.height = this.world.canvas.height;
+    sc.width = this.world.canvas.width;
+
     var elemLeft = this.grid.canvas.offsetLeft;
     var elemTop = this.grid.canvas.offsetTop;
 
     var self = this;
     this.world.canvas.addEventListener('click', function(event) {
-        var x = Math.floor((event.pageX - elemLeft - self.world.gridSize) / 10),
-            y = Math.floor((event.pageY - elemTop - self.world.gridSize) / 10);
-        Population.createWall(x,y);
+        console.log(event.pageX);
+        var x = Math.floor((event.pageX - elemLeft ) / self.world.gridSize),
+            y = Math.floor((event.pageY - elemTop ) / self.world.gridSize);
+
+
+        if(self.selectedTool == 'wall')
+          Population.createWall(x,y);
+        else if(self.selectedTool == 'inspect')
+          Population.Tools.displayInfos(x,y);
 
     }, false);
+    //Pour mettre le jeu en pause
     document.addEventListener('keypress',function(event){
       if(event.keyCode == 32)
         self.pause = !self.pause;
+    });
 
-      console.log(self.pause);
+    $('.btn').click(function(){
+      self.selectedTool = $(this).data('value');
     })
 
 
@@ -160,7 +174,7 @@ var Population = {
         this.objects[i].update();
       }
     }
-    
+
     // request new frame
     var self = this;
     requestAnimFrame(function() {

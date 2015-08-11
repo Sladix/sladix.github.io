@@ -4,28 +4,41 @@
 	<title>Sladix's realm - Population</title>
 	<meta charset="UTF-8">
 	<link href='http://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 </head>
 <body>
 	<style media="screen">
-		.scene-container{
+		#scene-container{
 			position:relative;
 		}
-		.scene-container #scene{
+		#scene-container #scene{
 			position: relative;
 		}
-		.scene-container #grid
+		#scene-container #grid
 		{
 			position: absolute;
 			top:0;
 			left:0;
 		}
+		.infos
+		{
+			display: inline-block;
+		}
 	</style>
-	<div class="scene-container">
+	<div id="scene-container">
 		<canvas id="grid" width="1000" height="1000"></canvas>
   	<canvas id="scene" width="1000" height="1000"></canvas>
+	</div>
+	<div class="ui">
+		<div class="tools">
+			<span class="btn btn-default" data-value="wall">Murs</span> <span class="btn btn-default" data-value="infos">Informations</span>
+		</div>
 		<ul id="output">
 
 		</ul>
+		<div id="informations">
+
+		</div>
 	</div>
 	<script type="text/javascript" src="js/libs/pathfinding.min.js"></script>
 	<script type="text/javascript" src="js/libs/jquery-2.1.4.min.js"></script>

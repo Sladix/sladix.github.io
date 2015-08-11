@@ -282,6 +282,9 @@ if (typeof Population == "undefined"){
       }
 
       this.speak = function(target){
+        if(target.status == Population.HumanStatus.EATING)
+          return b3.FAILURE;
+          
         if(this.status == null)
         {
           Population.Tools.log(this.name+' discute avec '+target.name);

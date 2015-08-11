@@ -13,8 +13,17 @@ _action('MoveTo',{
 
      if(target == null || typeof target == 'undefined')
       return b3.FAILURE;
-
-     return agent.moveTo(target.position);
+      if(target.type == 'human')
+      {
+        if(Population.Tools.getDistance(agent.position,target.position) == 1)
+          return b3.SUCCESS
+        else
+          position = Population.Tools.findNearestFreePos(target.position,agent.position);
+      }
+      else {
+        position = target.position;
+      }
+     return agent.moveTo(position);
     }
 })
 

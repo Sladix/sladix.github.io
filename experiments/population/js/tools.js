@@ -1,3 +1,14 @@
+function getNearest(a,b)
+{
+  if(a.distance < b.distance)
+    return -1;
+  else if(a.distance > b.distance)
+    return 1;
+  else {
+    return 0;
+  }
+
+}
 Population.Tools = {
  getDistance : function(pos1,pos2){
    var x1 = pos1.x,x2 = pos2.x;
@@ -26,5 +37,20 @@ Population.Tools = {
    setTimeout(function(){
      document.getElementById('output').removeChild(t);
    },5000);
+ },
+ findNearestFreePos : function(position,initialPos)
+ {
+   var x = position.x,
+       y = position.y,
+       poses = [];
+
+  for (var i = x-1; i < x+1; i++) {
+    for (var j = y-1; j < y+1; j++) {
+      if(Population.obstaclesMap.isWalkableAt(i,j))
+        poses.push({x:i,y:j,distance:Population.Tools.getDistance({x:i,y:j},initialPos)});
+    }
+  }
+  poses.sort(getNearest);
+  return poses.shift();
  }
 }

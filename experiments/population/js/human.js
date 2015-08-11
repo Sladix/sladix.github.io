@@ -185,14 +185,11 @@ if (typeof Population == "undefined"){
           return b3.SUCCESS;
         }
         //Si la prochaine case est bloquée, on recalcul le chemin
-        if(this.path.length > 0 && Population.obstaclesMap.isWalkableAt(this.path[0][0],this.path[0][1]) === false || this.memory.get('target').type == 'human')
+        if(this.path.length > 0 && Population.obstaclesMap.isWalkableAt(this.path[0][0],this.path[0][1]) === false)
         {
           this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
           this.path.shift();
         }
-
-        if(this.memory.get('target').type == 'human' && Population.Tools.getDistance(this.position,this.memory.get('target').position) == 1)
-          return b3.SUCCESS;
 
         if(this.path.length == 0)
         {
@@ -340,16 +337,16 @@ if (typeof Population == "undefined"){
         ctx.textAlign = "center";
         ctx.fillText(this.name, this.realPosition.x + (Population.world.gridSize/2), this.realPosition.y - 2);
 
-        if(this.finalPos != null && this.isAlive)
-        {
-          ctx.beginPath();
-          // ctx.moveTo(this.position.x*Population.world.gridSize + (Population.world.gridSize /2),this.position.y*Population.world.gridSize + (Population.world.gridSize /2))
-          for (var i = 0; i < this.path.length; i++) {
-            ctx.lineTo(this.path[i][0]*Population.world.gridSize + (Population.world.gridSize /2),this.path[i][1]*Population.world.gridSize + (Population.world.gridSize /2));
-            ctx.strokeStyle = '#FF0000';
-          }
-          ctx.stroke();
-        }
+        // if(this.finalPos != null && this.isAlive)
+        // {
+        //   ctx.beginPath();
+        //   // ctx.moveTo(this.position.x*Population.world.gridSize + (Population.world.gridSize /2),this.position.y*Population.world.gridSize + (Population.world.gridSize /2))
+        //   for (var i = 0; i < this.path.length; i++) {
+        //     ctx.lineTo(this.path[i][0]*Population.world.gridSize + (Population.world.gridSize /2),this.path[i][1]*Population.world.gridSize + (Population.world.gridSize /2));
+        //     ctx.strokeStyle = '#FF0000';
+        //   }
+        //   ctx.stroke();
+        // }
 
       }
     }

@@ -134,9 +134,6 @@ if (typeof Population == "undefined"){
         //Si on est arrivé, on se prépare à bouger à la prochaine case;
         if(this.hasArrived)
         {
-          if(this.interrupted)
-            return;
-
           if(this.status == null)
             this.attributes.bored++;
 

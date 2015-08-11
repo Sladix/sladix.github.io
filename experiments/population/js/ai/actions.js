@@ -9,6 +9,9 @@
 _action('MoveTo',{
   tick : function(tick){
      var agent = tick.target;
+
+     if(agent.interrupted)
+         return b3.FAILURE;
      var target = tick.blackboard.get('target');
 
      if(target == null || typeof target == 'undefined')

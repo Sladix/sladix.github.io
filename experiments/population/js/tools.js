@@ -73,7 +73,7 @@ Population.Tools = {
     {
       var p = document.createElement('p');
       p.innerHTML = target.name+' | status : '+((target.status != null)?translations[target.status]:'Erre');
-      p.innerHTML += '<br/> Vie : '+target.life;
+      p.innerHTML += '<br/> Vie : '+target.attributes.life;
       p.innerHTML += '<br/> Humeur : '+target.mood;
       p.innerHTML += '<br/> Faim : '+target.attributes.hunger;
       p.innerHTML += '<br/> Energie : '+target.attributes.energy;

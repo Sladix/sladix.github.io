@@ -151,6 +151,7 @@
         "y": 168
       },
       "children": [
+        "8a6af0b9-4988-49fd-bfe9-4cb1c4cf71ed",
         "a2b87ab4-a4e7-4dce-bf63-ab6a4f0d943f",
         "224d397b-a434-4228-80ae-5ec7811474fa"
       ]
@@ -193,12 +194,49 @@
         "x": 528,
         "y": 408
       }
+    },
+    "8a6af0b9-4988-49fd-bfe9-4cb1c4cf71ed": {
+      "id": "8a6af0b9-4988-49fd-bfe9-4cb1c4cf71ed",
+      "name": "Sequence",
+      "title": "Sequence",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 312,
+        "y": -252
+      },
+      "children": [
+        "7b981775-fe29-4cb7-8d4b-cc5fa8c90e6d",
+        "11ab6bae-dbe2-4e20-8068-b5c058ea139c"
+      ]
+    },
+    "7b981775-fe29-4cb7-8d4b-cc5fa8c90e6d": {
+      "id": "7b981775-fe29-4cb7-8d4b-cc5fa8c90e6d",
+      "name": "is_tired",
+      "title": "Am I tired ?",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 528,
+        "y": -336
+      }
+    },
+    "11ab6bae-dbe2-4e20-8068-b5c058ea139c": {
+      "id": "11ab6bae-dbe2-4e20-8068-b5c058ea139c",
+      "name": "Sleep",
+      "title": "Sleep",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 528,
+        "y": -228
+      }
     }
   },
   "display": {
     "camera_x": 385,
     "camera_y": 435.5,
-    "camera_z": 1,
+    "camera_z": 0.75,
     "x": -96,
     "y": 168
   },
@@ -266,6 +304,20 @@
       "properties": {
         "objectType": "food"
       }
+    },
+    {
+      "name": "is_tired",
+      "category": "condition",
+      "title": "Am I tired ?",
+      "description": null,
+      "properties": {}
+    },
+    {
+      "name": "Sleep",
+      "category": "action",
+      "title": "Sleep",
+      "description": null,
+      "properties": {}
     }
   ]
 }

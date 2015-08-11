@@ -23,5 +23,8 @@ Population.Tools = {
    var t = document.createElement('li');
    t.textContent = message;
    document.getElementById('output').appendChild(t);
+   setTimeout(function(){
+     document.getElementById('output').removeChild(t);
+   },5000);
  }
 }

@@ -76,8 +76,8 @@ Population.Food = function(options){
       y : Math.floor(Population.world.rows/2)
     };
     options.attributes = options.hasOwnProperty('attributes')?options.attributes:{
-      food      : 5,
-      foodValue : 2 + Math.floor(Math.random() * 5)
+      food      : 20,
+      foodValue : 2 + Math.floor(Math.random() * 10)
     };
     options.color = options.hasOwnProperty('color')?options.color:'#00FF00';
     this.class = 'objects';

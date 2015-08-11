@@ -8,7 +8,7 @@ Population.createWall(1,3);
 Population.createWall(2,3);
 Population.createWall(3,0);
 Population.createWall(3,1);
-for (var i = 0; i <5; i++) {
+for (var i = 0; i <3; i++) {
   var options = {
     position : {
       x: Math.floor(Population.world.cols / 2),

@@ -35,15 +35,39 @@ _condition('is_tired',{
    }
 })
 
-_condition('can_i_see',{
+_condition('is_bored',{
   tick : function(tick){
-    var agent = tick.target;
-    for (var i = 0; i < agent.perception.objects.length; i++) {
-      if(agent.perception.objects[i].type == this.properties.objectType)
+      if(tick.target.status == Population.HumanStatus.SPEAKING || tick.target.attributes.bored >= Population.HumanDefs.bored)
       {
         return b3.SUCCESS;
       }
+      else
+      {
+        return b3.FAILURE;
+      }
+   }
+})
+
+_condition('can_i_see',{
+  tick : function(tick){
+    var agent = tick.target;
+    if(this.properties.objectType != 'human')
+    {
+      for (var i = 0; i < agent.perception.objects.length; i++) {
+        if(agent.perception.objects[i].type == this.properties.objectType)
+        {
+          return b3.SUCCESS;
+        }
+      }
+    }else {
+      for (var i = 0; i < agent.perception.actors.length; i++) {
+        if(agent.perception.actors[i].type == this.properties.objectType)
+        {
+          return b3.SUCCESS;
+        }
+      }
     }
+
     return b3.FAILURE;
    }
 })

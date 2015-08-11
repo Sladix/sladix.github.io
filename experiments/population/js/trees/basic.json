@@ -15,7 +15,7 @@
       },
       "display": {
         "x": 528,
-        "y": -120
+        "y": -192
       }
     },
     "021dcb9b-7f49-47d4-860b-c7064ecb350c": {
@@ -28,7 +28,7 @@
       },
       "display": {
         "x": 936,
-        "y": -36
+        "y": -96
       }
     },
     "d290a5f3-d928-411c-aca4-e6ade99e4306": {
@@ -41,7 +41,7 @@
       },
       "display": {
         "x": 1152,
-        "y": 144
+        "y": 72
       }
     },
     "51a5431a-8d6e-41eb-b983-c9d90f4debf4": {
@@ -52,7 +52,7 @@
       "properties": {},
       "display": {
         "x": 1152,
-        "y": 228
+        "y": 168
       }
     },
     "a2b87ab4-a4e7-4dce-bf63-ab6a4f0d943f": {
@@ -63,7 +63,7 @@
       "properties": {},
       "display": {
         "x": 312,
-        "y": -36
+        "y": -96
       },
       "children": [
         "5b55409c-5825-4307-8e5e-d68cae28beed",
@@ -78,7 +78,7 @@
       "properties": {},
       "display": {
         "x": 936,
-        "y": 144
+        "y": 72
       },
       "children": [
         "7b636c2f-7004-493d-86bc-3ca92ed033a4",
@@ -94,7 +94,7 @@
       "properties": {},
       "display": {
         "x": 732,
-        "y": 48
+        "y": -12
       },
       "children": [
         "021dcb9b-7f49-47d4-860b-c7064ecb350c",
@@ -109,7 +109,7 @@
       "properties": {},
       "display": {
         "x": 528,
-        "y": 48
+        "y": -12
       },
       "children": [
         "0b36a164-c2b1-4340-92c8-2cefa3fa29fd"
@@ -125,20 +125,8 @@
       },
       "display": {
         "x": 1152,
-        "y": 48
+        "y": -12
       }
-    },
-    "4dcb586b-efea-4fcd-9332-6e07a1314a52": {
-      "id": "4dcb586b-efea-4fcd-9332-6e07a1314a52",
-      "name": "Priority",
-      "title": "Priority",
-      "description": "",
-      "properties": {},
-      "display": {
-        "x": -276,
-        "y": -132
-      },
-      "children": []
     },
     "b83d66c7-f853-4b6a-bd21-bd965cd64fba": {
       "id": "b83d66c7-f853-4b6a-bd21-bd965cd64fba",
@@ -153,6 +141,7 @@
       "children": [
         "8a6af0b9-4988-49fd-bfe9-4cb1c4cf71ed",
         "a2b87ab4-a4e7-4dce-bf63-ab6a4f0d943f",
+        "c77b8e61-6bb3-48db-8359-f56c76aacb8f",
         "224d397b-a434-4228-80ae-5ec7811474fa"
       ]
     },
@@ -164,7 +153,7 @@
       "properties": {},
       "display": {
         "x": 312,
-        "y": 360
+        "y": 732
       },
       "children": [
         "be514773-684d-4a69-896f-b8d49732c932",
@@ -179,7 +168,7 @@
       "properties": {},
       "display": {
         "x": 528,
-        "y": 312
+        "y": 696
       }
     },
     "f9608c24-da6c-41a3-9114-0920ee1a3bba": {
@@ -192,7 +181,7 @@
       },
       "display": {
         "x": 528,
-        "y": 408
+        "y": 780
       }
     },
     "8a6af0b9-4988-49fd-bfe9-4cb1c4cf71ed": {
@@ -203,7 +192,7 @@
       "properties": {},
       "display": {
         "x": 312,
-        "y": -252
+        "y": -324
       },
       "children": [
         "7b981775-fe29-4cb7-8d4b-cc5fa8c90e6d",
@@ -218,7 +207,7 @@
       "properties": {},
       "display": {
         "x": 528,
-        "y": -336
+        "y": -360
       }
     },
     "11ab6bae-dbe2-4e20-8068-b5c058ea139c": {
@@ -229,14 +218,149 @@
       "properties": {},
       "display": {
         "x": 528,
-        "y": -228
+        "y": -276
+      }
+    },
+    "c77b8e61-6bb3-48db-8359-f56c76aacb8f": {
+      "id": "c77b8e61-6bb3-48db-8359-f56c76aacb8f",
+      "name": "Priority",
+      "title": "Priority",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 312,
+        "y": 336
+      },
+      "children": [
+        "dd0e4c78-c848-424b-97ee-9fd936a1d6ed"
+      ]
+    },
+    "7dd2286c-c353-4fa3-9ae7-95803b2a0d47": {
+      "id": "7dd2286c-c353-4fa3-9ae7-95803b2a0d47",
+      "name": "is_bored",
+      "title": "Am I bored ?",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 732,
+        "y": 252
+      }
+    },
+    "dd0e4c78-c848-424b-97ee-9fd936a1d6ed": {
+      "id": "dd0e4c78-c848-424b-97ee-9fd936a1d6ed",
+      "name": "Sequence",
+      "title": "Sequence",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 528,
+        "y": 336
+      },
+      "children": [
+        "7dd2286c-c353-4fa3-9ae7-95803b2a0d47",
+        "652ce06d-fd5b-44a7-b013-86d60d0b7e4a"
+      ]
+    },
+    "652ce06d-fd5b-44a7-b013-86d60d0b7e4a": {
+      "id": "652ce06d-fd5b-44a7-b013-86d60d0b7e4a",
+      "name": "Priority",
+      "title": "Priority",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 732,
+        "y": 432
+      },
+      "children": [
+        "90c20660-aa92-4a57-855d-efa3bcbaae15"
+      ]
+    },
+    "91b2194d-8e65-4187-bcd1-24962f8c185e": {
+      "id": "91b2194d-8e65-4187-bcd1-24962f8c185e",
+      "name": "can_i_see",
+      "title": "Can I see some <objectType>?",
+      "description": "",
+      "properties": {
+        "objectType": "human"
+      },
+      "display": {
+        "x": 1152,
+        "y": 336
+      }
+    },
+    "90c20660-aa92-4a57-855d-efa3bcbaae15": {
+      "id": "90c20660-aa92-4a57-855d-efa3bcbaae15",
+      "name": "Sequence",
+      "title": "Sequence",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 936,
+        "y": 432
+      },
+      "children": [
+        "91b2194d-8e65-4187-bcd1-24962f8c185e",
+        "15a8bad0-4ebc-4dfa-9aeb-de48b470a48d"
+      ]
+    },
+    "776ad8d1-5dff-4972-9236-4c3fb461c6c3": {
+      "id": "776ad8d1-5dff-4972-9236-4c3fb461c6c3",
+      "name": "MoveTo",
+      "title": "Move To <objectType>",
+      "description": "",
+      "properties": {
+        "objectType": "human"
+      },
+      "display": {
+        "x": 1356,
+        "y": 516
+      }
+    },
+    "2cc1a214-cf7c-4fa4-8753-9b8feac2661a": {
+      "id": "2cc1a214-cf7c-4fa4-8753-9b8feac2661a",
+      "name": "Choose",
+      "title": "Choose <objectType>",
+      "description": "",
+      "properties": {
+        "objectType": "human"
+      },
+      "display": {
+        "x": 1356,
+        "y": 432
+      }
+    },
+    "15a8bad0-4ebc-4dfa-9aeb-de48b470a48d": {
+      "id": "15a8bad0-4ebc-4dfa-9aeb-de48b470a48d",
+      "name": "MemSequence",
+      "title": "MemSequence",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 1152,
+        "y": 516
+      },
+      "children": [
+        "2cc1a214-cf7c-4fa4-8753-9b8feac2661a",
+        "776ad8d1-5dff-4972-9236-4c3fb461c6c3",
+        "d4a104b1-76e0-4d7f-9695-27106d0f826d"
+      ]
+    },
+    "d4a104b1-76e0-4d7f-9695-27106d0f826d": {
+      "id": "d4a104b1-76e0-4d7f-9695-27106d0f826d",
+      "name": "Speak",
+      "title": "Speak",
+      "description": "",
+      "properties": {},
+      "display": {
+        "x": 1356,
+        "y": 600
       }
     }
   },
   "display": {
-    "camera_x": 385,
-    "camera_y": 435.5,
-    "camera_z": 0.75,
+    "camera_x": 417,
+    "camera_y": 321.5,
+    "camera_z": 0.5,
     "x": -96,
     "y": 168
   },
@@ -316,6 +440,20 @@
       "name": "Sleep",
       "category": "action",
       "title": "Sleep",
+      "description": null,
+      "properties": {}
+    },
+    {
+      "name": "is_bored",
+      "category": "condition",
+      "title": "Am I bored ?",
+      "description": null,
+      "properties": {}
+    },
+    {
+      "name": "Speak",
+      "category": "action",
+      "title": "Speak",
       "description": null,
       "properties": {}
     }

@@ -13,16 +13,19 @@ if (typeof Population == "undefined"){
     females : ['Carine', 'Sabrina', 'Géraldine', 'Emmanuelle', 'Nathalie', 'Julia', 'Camille', 'Marie', 'Inès']
   };
   Population.HumanDefs = {
-    starving : 100
+    starving : 200,
+    baseEnergy : 100,
+    bored : 30
   }
   Population.HumanStatus = {
     SLEEPING : 0,
     EATING : 1,
+    SPEAKING : 2
   }
   Population.Human = function(options){
     return new function(){
       //Vitesse de pensée (et mouvement)
-      this.thinkRate = 100; //On pense toutes les secondes
+      this.thinkRate = 200; //On pense toutes les secondes
       this.speed = 100 / 60; // 100 pixels à la seconde
       this.sightRange = 5;
 
@@ -57,8 +60,9 @@ if (typeof Population == "undefined"){
         hungerTreshold  : Population.HumanDefs.starving/2,//50 + Math.floor(Math.random() * 50) ,
         food   : 100,
         foodValue   : 1,
-        energy  : 100 + Math.floor(Math.random() * 50),
+        energy  : Population.HumanDefs.baseEnergy + Math.floor(Math.random() * 50),
         energyTreshold  : 20,
+        bored : 0,
         maxEnergy : 100 + Math.floor(Math.random() * 50),
         beauty  : 20 + Math.floor(Math.random() * 100)
       };
@@ -92,8 +96,9 @@ if (typeof Population == "undefined"){
       //Puis son inventaire
       this.inventoryLimit = 10;
       this.inventory = [];
-      
+
       this.id = Population.addActor(this);
+
       this.update = function(){
         if(this.isAlive)
         {
@@ -127,6 +132,9 @@ if (typeof Population == "undefined"){
         //Si on est arrivé, on se prépare à bouger à la prochaine case;
         if(this.hasArrived)
         {
+          if(this.status == null)
+            this.attributes.bored++;
+
           if(this.attributes.hunger > Population.HumanDefs.starving && this.status != Population.HumanStatus.EATING)
             this.attributes.life-=0.25;
 
@@ -156,8 +164,8 @@ if (typeof Population == "undefined"){
         var things = ['actors','objects'];
         for (var j = 0; j < things.length; j++) {
           for (var i = 0; i < Population[things[j]].length; i++) {
-            //On se perçoit aussi du coup luelueluluzlz
-            if(Population[things[j]][i].position.x >= mix && Population[things[j]][i].position.x <= max && Population[things[j]][i].position.y >= miy && Population[things[j]][i].position.y <= may)
+            //On se perçoit plus aussi du coup luelueluluzlz
+            if(Population[things[j]][i].position.x >= mix && Population[things[j]][i].position.x <= max && Population[things[j]][i].position.y >= miy && Population[things[j]][i].position.y <= may && Population[things[j]][i] !== this)
             {
               this.perception[things[j]].push(Population[things[j]][i]);
             }
@@ -174,19 +182,22 @@ if (typeof Population == "undefined"){
         }
         if(Population.Tools.getDistance(this.position,this.finalPos) == 0)
         {
-          return false;
+          return b3.SUCCESS;
         }
         //Si la prochaine case est bloquée, on recalcul le chemin
-        if(this.path.length > 0 && Population.obstaclesMap.isWalkableAt(this.path[0][0],this.path[0][1]) === false)
+        if(this.path.length > 0 && Population.obstaclesMap.isWalkableAt(this.path[0][0],this.path[0][1]) === false || this.memory.get('target').type == 'human')
         {
           this.path = Population.finder.findPath(this.position.x,this.position.y,this.finalPos.x,this.finalPos.y,Population.obstaclesMap.clone());
           this.path.shift();
         }
 
+        if(this.memory.get('target').type == 'human' && Population.Tools.getDistance(this.position,this.memory.get('target').position) == 1)
+          return b3.SUCCESS;
+
         if(this.path.length == 0)
         {
           this.targetPos = null;
-          return false;
+          return b3.FAILURE;
           //On est arrivé à destination ou on ne peut pas y aller
         }else {
           this.hasArrived = false;
@@ -194,21 +205,29 @@ if (typeof Population == "undefined"){
           this.targetPos = this.path.shift();
           //On "réserve" la case
           Population.obstaclesMap.setWalkableAt(this.targetPos[0],this.targetPos[1],false);
-          return true;
+          return b3.RUNNING;
         }
       }
       this.choose = function(type){
         var cchoose = [];
-        for (var i = 0; i < this.perception.objects.length; i++) {
-          if(this.perception.objects[i].type == type)
-          {
-            // if(type == 'food')
-            // {
-            //   //Choix du type de nourriture
-            // }
-            cchoose.push(this.perception.objects[i]);
+        if(type == 'human')
+        {
+          for (var i = 0; i < this.perception.actors.length; i++) {
+            cchoose.push(this.perception.actors[i]);
+          }
+        }else {
+          for (var i = 0; i < this.perception.objects.length; i++) {
+            if(this.perception.objects[i].type == type && Population.obstaclesMap.isWalkableAt(this.perception.objects[i].position.x,this.perception.objects[i].position.y))
+            {
+              // if(type == 'food')
+              // {
+              //   //Choix du type de nourriture
+              // }
+              cchoose.push(this.perception.objects[i]);
+            }
           }
         }
+
         return (cchoose.length > 0)?cchoose.shift():null;
       }
       this.sleep = function(){
@@ -225,26 +244,25 @@ if (typeof Population == "undefined"){
       }
 
       this.eat = function(target){
-        if(Population.Tools.getDistance(this.position,target.position) != 0)
-        {
-          console.log('possible bug getDistance')
-          return b3.FAILURE;
-        }
-
-
-
         if(this.attributes.hunger > 0)
         {
-          //Si on a encore faim mais que la nourrite a plus de bouffe,
+          // Si on a encore faim mais que la nourrite a plus de bouffe,
           // On retourne success pour pouvoir intérompre l'arbre
           if(target.attributes.food <= 0)
           {
             this.memory.set('target',null);
+            this.status = null;
             return b3.SUCCESS;
           }
-          this.attributes.hunger = this.attributes.hunger - target.attributes.foodValue;
+          if(this.status != Population.HumanStatus.EATING)
+          {
+            this.status = Population.HumanStatus.EATING;
+            Population.Tools.log(this.name+' mange un morceau');
+          }
+          this.attributes.hunger = this.attributes.hunger - (target.attributes.foodValue*1.5);
           target.attributes.food = target.attributes.food - target.attributes.foodValue;
-          this.status = Population.HumanStatus.EATING;
+
+
           if(target.attributes.food <= 0)
           {
             return b3.SUCCESS;
@@ -256,10 +274,31 @@ if (typeof Population == "undefined"){
         }
       }
 
+      this.speak = function(target){
+        if(this.status == null)
+        {
+          Population.Tools.log(this.name+' discute avec '+target.name);
+          target.status = Population.HumanStatus.SPEAKING;
+          this.status = target.status;
+        }
+
+        this.attributes.bored-=2;
+        target.attributes.bored-=2;
+
+        if(this.attributes.bored <= 0 )
+        {
+          this.status = null;
+          target.status = null;
+          return b3.SUCCESS;
+        }
+
+        return b3.RUNNING;
+      }
+
       this.move = function () {
         this.hasArrived = false;
-        var speedx = (this.targetPos[0]*Population.world.gridSize - this.realPosition.x) * this.speed * Population.delta / this.thinkRate;
-        var speedy = (this.targetPos[1]*Population.world.gridSize - this.realPosition.y) * this.speed * Population.delta / this.thinkRate;
+        var speedx = (this.targetPos[0]*Population.world.gridSize - this.realPosition.x) * Population.delta / this.thinkRate;
+        var speedy = (this.targetPos[1]*Population.world.gridSize - this.realPosition.y) * Population.delta / this.thinkRate ;
         this.realPosition.x += speedx;
         this.realPosition.y += speedy;
       }
@@ -270,6 +309,8 @@ if (typeof Population == "undefined"){
             x : ((Math.floor(Math.random() * Population.world.cols))),
             y : ((Math.floor(Math.random() * Population.world.rows))),
           }
+
+        this.attributes.bored++;
 
         return {type:null,position:finalPos};
       }
@@ -299,16 +340,16 @@ if (typeof Population == "undefined"){
         ctx.textAlign = "center";
         ctx.fillText(this.name, this.realPosition.x + (Population.world.gridSize/2), this.realPosition.y - 2);
 
-        // if(this.finalPos != null && this.isAlive)
-        // {
-        //   ctx.beginPath();
-        //   // ctx.moveTo(this.position.x*Population.world.gridSize + (Population.world.gridSize /2),this.position.y*Population.world.gridSize + (Population.world.gridSize /2))
-        //   for (var i = 0; i < this.path.length; i++) {
-        //     ctx.lineTo(this.path[i][0]*Population.world.gridSize + (Population.world.gridSize /2),this.path[i][1]*Population.world.gridSize + (Population.world.gridSize /2));
-        //     ctx.strokeStyle = '#FF0000';
-        //   }
-        //   ctx.stroke();
-        // }
+        if(this.finalPos != null && this.isAlive)
+        {
+          ctx.beginPath();
+          // ctx.moveTo(this.position.x*Population.world.gridSize + (Population.world.gridSize /2),this.position.y*Population.world.gridSize + (Population.world.gridSize /2))
+          for (var i = 0; i < this.path.length; i++) {
+            ctx.lineTo(this.path[i][0]*Population.world.gridSize + (Population.world.gridSize /2),this.path[i][1]*Population.world.gridSize + (Population.world.gridSize /2));
+            ctx.strokeStyle = '#FF0000';
+          }
+          ctx.stroke();
+        }
 
       }
     }

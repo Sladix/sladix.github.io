@@ -13,17 +13,8 @@ _action('MoveTo',{
 
      if(target == null || typeof target == 'undefined')
       return b3.FAILURE;
-      
-     if(agent.moveTo(target.position))
-     {
-       tick.target.attributes.energy--;
-       return b3.RUNNING;
-     }else if (agent.position.x != target.position.x || agent.position.y != target.position.y ) {
-       return b3.FAILURE;
-     }else
-     {
-       return b3.SUCCESS;
-     }
+
+     return agent.moveTo(target.position);
     }
 })
 
@@ -31,6 +22,13 @@ _action('Eat',{
   tick : function(tick){
      var target = tick.blackboard.get('target');
      return tick.target.eat(target);
+    }
+})
+
+_action('Speak',{
+  tick : function(tick){
+     var target = tick.blackboard.get('target');
+     return tick.target.speak(target);
     }
 })
 

@@ -9,6 +9,7 @@ var Population = {
   now : null,
   then : null,
   delta : null,
+  pause : false,
   actors : [],
   objects : [],
   grid : {
@@ -39,18 +40,26 @@ var Population = {
     this.world.ctx = this.world.canvas.getContext('2d');
 
     this.grid.canvas = document.getElementById('grid');
+    this.grid.canvas.height = this.world.canvas.height;
+    this.grid.canvas.width = this.world.canvas.width;
     this.grid.ctx = this.grid.canvas.getContext('2d');
     var elemLeft = this.grid.canvas.offsetLeft;
     var elemTop = this.grid.canvas.offsetTop;
 
     var self = this;
     this.world.canvas.addEventListener('click', function(event) {
-      console.log('ok');
         var x = Math.floor((event.pageX - elemLeft - self.world.gridSize) / 10),
             y = Math.floor((event.pageY - elemTop - self.world.gridSize) / 10);
         Population.createWall(x,y);
 
     }, false);
+    document.addEventListener('keypress',function(event){
+      if(event.keyCode == 32)
+        self.pause = !self.pause;
+
+      console.log(self.pause);
+    })
+
 
     // Pathfinder initialisation
     this.finder = new PF.AStarFinder({
@@ -114,38 +123,44 @@ var Population = {
     return this.actors.length-1;
   },
   loop : function () {
+
     //on défini le nouveau temps
     this.world.time = (new Date()).getTime() - this.world.startTime;
     this.now = (new Date()).getTime();
 	  this.delta = this.now - this.then;
-    //On clear
-    this.world.ctx.clearRect(0, 0, this.world.canvas.width, this.world.canvas.height);
 
-    //on rempli la map d'obstacles
-    this.obstaclesMap = new PF.Grid(this.world.cols,this.world.rows);
-    for (var i = 0; i < this.wallMap.length; i++) {
-      this.obstaclesMap.setWalkableAt(this.wallMap[i][0],this.wallMap[i][1],false);
-    }
-    for (var i = 0; i < this.actors.length; i++) {
-      if(this.actors[i].isAlive)
-      {
-        this.obstaclesMap.setWalkableAt(this.actors[i].position.x,this.actors[i].position.y,false);
-        if(this.actors[i].targetPos != null)
+    if(this.pause === false)
+    {
+      //On clear
+      this.world.ctx.clearRect(0, 0, this.world.canvas.width, this.world.canvas.height);
+
+      //on rempli la map d'obstacles
+      this.obstaclesMap = new PF.Grid(this.world.cols,this.world.rows);
+      for (var i = 0; i < this.wallMap.length; i++) {
+        this.obstaclesMap.setWalkableAt(this.wallMap[i][0],this.wallMap[i][1],false);
+      }
+      for (var i = 0; i < this.actors.length; i++) {
+        if(this.actors[i].isAlive)
         {
-          this.obstaclesMap.setWalkableAt(this.actors[i].targetPos[0],this.actors[i].targetPos[1],false);
+          this.obstaclesMap.setWalkableAt(this.actors[i].position.x,this.actors[i].position.y,false);
+          if(this.actors[i].targetPos != null)
+          {
+            this.obstaclesMap.setWalkableAt(this.actors[i].targetPos[0],this.actors[i].targetPos[1],false);
+          }
         }
       }
-    }
 
-    //On update les acteurs
-    for (var i = 0; i < this.actors.length; i++) {
-      this.actors[i].update();
-    }
+      //On update les acteurs
+      for (var i = 0; i < this.actors.length; i++) {
+        this.actors[i].update();
+      }
 
-    //On update les objets
-    for (var i = 0; i < this.objects.length; i++) {
-      this.objects[i].update();
+      //On update les objets
+      for (var i = 0; i < this.objects.length; i++) {
+        this.objects[i].update();
+      }
     }
+    
     // request new frame
     var self = this;
     requestAnimFrame(function() {

@@ -25,7 +25,7 @@ if (typeof Population == "undefined"){
   Population.Human = function(options){
     return new function(){
       //Vitesse de pensée (et mouvement)
-      this.thinkRate = 200; //On pense toutes les secondes
+      this.thinkRate = 100; //On pense toutes les secondes
       this.speed = 100 / 60; // 100 pixels à la seconde
       this.sightRange = 5;
 
@@ -44,6 +44,7 @@ if (typeof Population == "undefined"){
       this.isAlive = true;
       this.deadColor = '#eee';
       this.status = null;
+      this.mood = 'good';
       //Options par défaut
       options = options || {};
       options.position = options.hasOwnProperty('position')?options.position:{
@@ -136,7 +137,10 @@ if (typeof Population == "undefined"){
             this.attributes.bored++;
 
           if(this.attributes.hunger > Population.HumanDefs.starving && this.status != Population.HumanStatus.EATING)
+          {
             this.attributes.life-=0.25;
+            this.mood = 'bad';
+          }
 
           this.percieve();
           if(this.attributes.life <= 0)
@@ -232,9 +236,14 @@ if (typeof Population == "undefined"){
         if(this.attributes.energy > this.attributes.maxEnergy)
         {
           this.status = null;
+          this.mood = 'good';
           return b3.SUCCESS;
         }else {
-          this.status = Population.HumanStatus.SLEEPING;
+          if(this.status != Population.HumanStatus.SLEEPING)
+          {
+            Population.Tools.log(this.name+' s\'est endormi');
+            this.status = Population.HumanStatus.SLEEPING;
+          }
           this.attributes.energy+=2;
           this.attributes.hunger+=0.25;
           return b3.RUNNING;
@@ -249,7 +258,6 @@ if (typeof Population == "undefined"){
           if(target.attributes.food <= 0)
           {
             this.memory.set('target',null);
-            this.status = null;
             return b3.SUCCESS;
           }
           if(this.status != Population.HumanStatus.EATING)
@@ -267,6 +275,7 @@ if (typeof Population == "undefined"){
           }
           return b3.RUNNING;
         }else {
+          this.mood = 'good';
           this.status = null;
           return b3.SUCCESS;
         }

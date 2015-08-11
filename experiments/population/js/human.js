@@ -202,6 +202,7 @@ if (typeof Population == "undefined"){
           this.targetPos = this.path.shift();
           //On "réserve" la case
           Population.obstaclesMap.setWalkableAt(this.targetPos[0],this.targetPos[1],false);
+          this.attributes.energy--;
           return b3.RUNNING;
         }
       }

@@ -44,8 +44,9 @@ if (typeof Population == "undefined"){
       this.isAlive = true;
       this.deadColor = '#eee';
       this.status = null;
-      this.mood = 'good';
+      this.mood = 0; //neutre
       this.interrupted = false;
+      this.interruptedTarget = null;
       //Options par défaut
       options = options || {};
       options.position = options.hasOwnProperty('position')?options.position:{
@@ -134,14 +135,24 @@ if (typeof Population == "undefined"){
         //Si on est arrivé, on se prépare à bouger à la prochaine case;
         if(this.hasArrived)
         {
+          //Si on a interrompu quelqu'un mais qu'on est a plus d'une case de lui, on le libère sa race la pute la pute de chienne
+          if(this.interruptedTarget != null && Population.Tools.getDistance(this.position,this.interruptedTarget.position) > 1)
+          {
+            this.interruptedTarget.interrupted = false;
+            this.interruptedTarget.status = null;
+            this.interruptedTarget = null;
+          }
           if(this.status == null)
             this.attributes.bored++;
 
           if(this.attributes.hunger > Population.HumanDefs.starving && this.status != Population.HumanStatus.EATING)
           {
             this.attributes.life-=0.25;
-            this.mood = 'bad';
+            this.mood--;
           }
+
+          if(this.attributes.bored > Population.HumanDefs.bored * 2)
+            this.mood--;
 
           this.percieve();
           if(this.attributes.life <= 0)
@@ -216,7 +227,8 @@ if (typeof Population == "undefined"){
         if(type == 'human')
         {
           for (var i = 0; i < this.perception.actors.length; i++) {
-            cchoose.push(this.perception.actors[i]);
+            if(this.perception.actors[i].status == null)
+              cchoose.push(this.perception.actors[i]);
           }
         }else {
           for (var i = 0; i < this.perception.objects.length; i++) {
@@ -237,7 +249,7 @@ if (typeof Population == "undefined"){
         if(this.attributes.energy > this.attributes.maxEnergy)
         {
           this.status = null;
-          this.mood = 'good';
+          this.mood += 10;
           return b3.SUCCESS;
         }else {
           if(this.status != Population.HumanStatus.SLEEPING)
@@ -276,14 +288,14 @@ if (typeof Population == "undefined"){
           }
           return b3.RUNNING;
         }else {
-          this.mood = 'good';
+          this.mood += 10;
           this.status = null;
           return b3.SUCCESS;
         }
       }
 
       this.speak = function(target){
-        if(target == null || target.status == Population.HumanStatus.EATING)
+        if(target == null)
         {
           this.status = null;
           return b3.FAILURE;
@@ -295,6 +307,7 @@ if (typeof Population == "undefined"){
           target.status = Population.HumanStatus.SPEAKING;
           target.interrupted = true;
           this.status = target.status;
+          this.interruptedTarget = target;
         }
 
         this.attributes.bored-=2;
@@ -305,6 +318,7 @@ if (typeof Population == "undefined"){
           this.status = null;
           target.status = null;
           target.interrupted = false;
+          this.interruptedTarget = null;
           return b3.SUCCESS;
         }
 
@@ -347,8 +361,8 @@ if (typeof Population == "undefined"){
         ctx.fillStyle = color;
         ctx.fill();
         ctx.lineWidth = 1;
-        ctx.strokeStyle = '#777';
-        ctx.stroke();
+        // ctx.strokeStyle = '#777';
+        // ctx.stroke();
 
         //On affiche le nom
         ctx.font = "10px Helvetica";

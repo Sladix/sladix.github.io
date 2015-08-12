@@ -1,11 +1,13 @@
 (function (window) {
 	function Unit(pos) {
 		this.alive = true;
+    this.orders = [];
     this.selected = false;
 		this.speed = 1;
     this.color = "#00FF00";
     this.selectedColor = "#00FFFF";
     this.lesize = 32;
+    this.sightRange = 5;
 		this.x = pos.x*this.lesize;
 		this.y = pos.y*this.lesize;
   	this.initialize();
@@ -28,6 +30,11 @@
     units.push(this);
  	}
 
+  Unit.prototype.canSeeTarget = function()
+  {
+
+  }
+
   Unit.prototype.toggleSelect = function(){
     this.selected = !this.selected;
     this.shape.graphics.clear().beginFill(((this.selected)?this.selectedColor:this.color)).drawRect(0, 0, this.lesize, this.lesize).endFill();
@@ -36,6 +43,10 @@
   Unit.prototype.deSelect = function(){
     this.selected = false;
     this.shape.graphics.clear().beginFill(this.color).drawRect(0, 0, this.lesize, this.lesize).endFill();
+  }
+
+  Unit.prototype.addOrder = function(){
+
   }
 
  	Unit.prototype.tick = function(){

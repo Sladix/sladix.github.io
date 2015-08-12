@@ -2,7 +2,6 @@
 	function Tiles(data) {
     this.data = data;
     this.rows = data.split(/\r\n|\r|\n/);
-    this.tilesSize = 32;
     this.floorColor = '#eee';
     this.wallColor = '#000';
 		//Coordonnées y,x
@@ -22,8 +21,9 @@
             break;
         }
         o.graphics.beginStroke("#333").setStrokeStyle(1);
-        o.graphics.beginFill(color).drawRect(j*this.tilesSize, i*this.tilesSize, this.tilesSize, this.tilesSize);
+        o.graphics.beginFill(color).drawRect(j*blocksize, i*blocksize, blocksize, blocksize);
         stage.addChild(o);
+				o.addEventListener('click',ui.tileClick);
       }
     }
 	}

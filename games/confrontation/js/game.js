@@ -5,8 +5,11 @@ var stage,
     bullets = [],
     turnTime = 1000,
     map = [],
-    started = false,
-    selectedUnit = null;
+    blocksize = 32,
+    started = false;
+
+
+var ui = new Lui();
 
 function init() {
 
@@ -15,10 +18,16 @@ function init() {
   canvas.height = window.innerHeight;
   stage = new createjs.Stage("game");
 
+  // TODO: Ajouter un écran de départ
+  // Gestion des sous dans une partie
+
+  //Prévoir un type de niveau, ça c'est la préparation de bataille
   $.ajax({url:'levels/intro.txt',async:false}).done(function(data){
     changeLevel(data);
   });
 
+  // TODO: On fera ça quand on aura acheté l'unité pour la placer
+  // On pourra aussi la revendre
   var a = new Unit({x:1,y:1});
   stage.addChild(a);
 

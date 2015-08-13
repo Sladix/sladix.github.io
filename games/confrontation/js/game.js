@@ -11,7 +11,7 @@ var stage,
     finder = new PF.AStarFinder({
         allowDiagonal: false
     }),
-    blocksize = 32,
+    blocksize = 16,
     started = false;
 
 
@@ -58,6 +58,13 @@ function init() {
   createjs.Ticker.setFPS(60);
   createjs.Ticker.addEventListener("tick", tick);
 
+}
+
+function nextTurn()
+{
+  for (var i = 0; i < units.length; i++) {
+    units[i].executeNextOrder();
+  }
 }
 
 function changeLevel(dataLevel)

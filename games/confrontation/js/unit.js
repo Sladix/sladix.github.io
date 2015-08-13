@@ -54,12 +54,26 @@
 
 	Unit.prototype.executeNextOrder = function()
 	{
+		if(this.orders.length < 1)
+			return;
 		// Si on peut pas bouger, on attend
+		var order = this.orders[0];
 
+		createjs.Tween.get(this).to({x:order.position.x*blocksize,y:order.position.y*blocksize},turnTime*0.75);
 		// On bouge si on le doit
 
 		// Si on peut voir des ennemis on leur tire dessis
 		// TODO : On recherche les enemis par priorité
+
+		//On supprime l'ordre du stage
+		if(order.type == 'wait' && order.waitTime > 0)
+		{
+			order.waitTime--;
+		}else {
+			this.orders.shift();
+			stage.removeChild(order);
+		}
+
 	}
 
   Unit.prototype.canSeeTarget = function()

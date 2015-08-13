@@ -46,6 +46,10 @@
     this.shape = new createjs.Shape();
     this.shape.graphics.beginFill(this.color).drawRect(0, 0, blocksize, blocksize).endFill();
     this.addChild(this.shape);
+		var instance = this;
+	  this.addEventListener('click',function(){
+	    ui.select(instance);
+	  },false)
  	}
 
  	Unit.prototype.tick = function(){

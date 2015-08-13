@@ -36,15 +36,9 @@ function init() {
   // On pourra aussi la revendre
   units[0] = new Unit({x:1,y:1});
   stage.addChild(units[0]);
-  units[0].addEventListener('click',function(){
-    ui.select(units[0]);
-  },false)
 
   units[1] = new Unit({x:3,y:1});
   stage.addChild(units[1]);
-  units[1].addEventListener('click',function(){
-    ui.select(units[1]);
-  },false)
   //
   // units[2] = new Unit({x:5,y:1});
   // stage.addChild(units[2]);

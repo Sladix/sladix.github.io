@@ -16,74 +16,120 @@
  	Unit.prototype.initialize = function (pos,options) {
 		this.Container_initialize();
 		this.alive = true;
+		this.currentOrder = 0;
 		//Order :
 		// {
 		// type : 'move' ou 'wait'
 		// position : {x,y} ou null
 		// }
-		var options = options || {
+		options = options || {};
+		options.attributes = options.hasOwnProperty('attributes')?options.attributes:{
 			movements : 10,
 			price : 1,
-			speed : 2,
+			speed : 1,
 			life : 2,
-			range : 1,
+			range : 2,
 			damage : 1
 		};
-		this.attributes = options;
+
+		options.player = options.hasOwnProperty('player')?options.player:0;
+
+		this.attributes = options.attributes;
+		this.player = options.player;
+ 		this.type = 'Unit';
 
     this.orders = [];
 		this.r = Math.random();
     this.selected = false;
-    this.color = "#00FF00";
+    this.color = (this.player == 0)?"#00FF00":"#E91F49";
     this.selectedColor = "#00FFFF";
     this.sightRange = 5;
-		this.x = pos.x*blocksize;
-		this.y = pos.y*blocksize;
+		this.x = mapOffsetX + pos.x*blocksize;
+		this.y = mapOffsetY + pos.y*blocksize;
 		this.position = pos;
- 		this.name = 'Unit';
  		this.snapToPixel = true;
 
     this.shape = new createjs.Shape();
     this.shape.graphics.beginFill(this.color).drawRect(0, 0, blocksize, blocksize).endFill();
     this.addChild(this.shape);
 		var instance = this;
-	  this.addEventListener('click',function(){
-	    ui.select(instance);
-	  },false)
+		if(this.player == 0)
+		{
+			this.addEventListener('click',function(){
+		    ui.select(instance);
+		  },false)
+		}
+
  	}
 
  	Unit.prototype.tick = function(){
 
  	}
 
-	Unit.prototype.executeNextOrder = function()
+	Unit.prototype.getNearestTarget = function()
 	{
-		if(this.orders.length < 1)
-			return;
-		// Si on peut pas bouger, on attend
-		var order = this.orders[0];
-
-		createjs.Tween.get(this).to({x:order.position.x*blocksize,y:order.position.y*blocksize},turnTime*0.75);
-		// On bouge si on le doit
-
-		// Si on peut voir des ennemis on leur tire dessis
-		// TODO : On recherche les enemis par priorité
-
-		//On supprime l'ordre du stage
-		if(order.type == 'wait' && order.waitTime > 0)
-		{
-			order.waitTime--;
-		}else {
-			this.orders.shift();
-			stage.removeChild(order);
+		for (var i = 0; i < units.length; i++) {
+			if(units[i].player != this.player && getDistance(this.position,units[i].position) <= this.attributes.range)
+			{
+				return units[i];
+			}
 		}
+		return null;
+	}
+
+	Unit.prototype.fireAt = function(pos){
 
 	}
 
-  Unit.prototype.canSeeTarget = function()
-  {
 
-  }
+	Unit.prototype.executeNextOrder = function()
+	{
+		if(!this.alive)
+			return 1;
+		for (var i = 0; i < this.attributes.speed; i++) {
+			if(this.currentOrder == this.orders.length)
+				return 1;
+			// Si on peut pas bouger, on attend
+			var order = this.orders[this.currentOrder];
+
+			//On attend si on le doit
+			// Refaire cette partie là..
+			if(order.type == 'wait' && order.waitTime > 0)
+			{
+				order.waitTime--;
+			}else {
+				// On bouge si on le peux et doit
+				if(umap[order.position.x][order.position.y] && order.type == 'walk')
+				{
+					createjs.Tween.get(this).to({x:order.position.x*blocksize + mapOffsetX,y:order.position.y*blocksize + mapOffsetY},turnTime/this.attributes.speed,createjs.Ease.cubicInOut);
+					this.position = order.position;
+					this.currentOrder++;
+					stage.removeChild(order);
+				}else if(order.type == 'wait' && order.waitTime <= 0){
+					this.currentOrder++;
+					stage.removeChild(order);
+				}
+
+			}
+
+
+
+
+			// Si on peut voir des ennemis on leur tire dessis
+			// TODO : On recherche les enemis par priorité
+			var n = this.getNearestTarget();
+			if(n != null)
+			{
+				this.fireAt(n.position);
+				n.attributes.life--;
+			}
+
+			//On supprime l'ordre du stage
+
+
+		}
+		return 0;
+	}
 
   Unit.prototype.toggleSelect = function(){
     this.selected = !this.selected;
@@ -113,24 +159,25 @@
 			var d = new createjs.Container();
 			d.type = type;
 			d.position = position;
+			d.waitTime = 0;
 
 			var o = new createjs.Shape();
 			o.graphics.setStrokeStyle(4,"round").beginStroke('DeepSkyBlue');
-			o.graphics.moveTo(lastPos.x*blocksize + blocksize / 2,lastPos.y*blocksize + blocksize / 2);
-			o.graphics.lineTo(position.x*blocksize + blocksize / 2, position.y*blocksize + blocksize /2).endStroke();
+			o.graphics.moveTo(lastPos.x*blocksize + mapOffsetX + blocksize / 2,lastPos.y*blocksize + mapOffsetY + blocksize / 2);
+			o.graphics.lineTo(position.x*blocksize + mapOffsetX + blocksize / 2, position.y*blocksize + mapOffsetY + blocksize /2).endStroke();
 			if(type == 'wait')
 			{
 				d.waitTime = 1;
 				var t = new createjs.Text("Wait for "+d.waitTime+" turns","12px Arial","#FF0000");
 				t.name = 'text';
-				t.x = position.x * blocksize + blocksize / 2;
-				t.y = position.y * blocksize + blocksize;
+				t.x = position.x * blocksize + mapOffsetX + blocksize / 2;
+				t.y = position.y * blocksize + mapOffsetY + blocksize;
 				t.textAlign = "center";
 				d.addChild(t);
 
 				var c = new createjs.Shape();
-				c.x = position.x * blocksize + blocksize / 2;
-				c.y = position.y * blocksize + blocksize / 2;
+				c.x = position.x * blocksize + mapOffsetX + blocksize / 2;
+				c.y = position.y * blocksize + mapOffsetY + blocksize / 2;
 				c.graphics.moveTo();
 				c.graphics.beginFill("#FF0000").drawCircle(0, 0, blocksize/4);
 				d.addChild(c);
@@ -138,10 +185,10 @@
 			d.addChild(o);
 			stage.addChild(d);
 			this.orders.push(d);
+			//On enlève un mouvement seulement si on marche;
+			this.attributes.movements--;
 		}
 
-
-		this.attributes.movements--;
 		return true;
   }
 

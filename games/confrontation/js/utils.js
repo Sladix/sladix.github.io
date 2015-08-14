@@ -17,3 +17,8 @@ function getHeight() {
     return document.body.clientHeight;
   }
 }
+
+function getDistance(pos1,pos2)
+{
+  
+}

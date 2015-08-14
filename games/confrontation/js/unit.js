@@ -103,6 +103,7 @@
 				{
 					createjs.Tween.get(this).to({x:order.position.x*blocksize + mapOffsetX,y:order.position.y*blocksize + mapOffsetY},turnTime/this.attributes.speed,createjs.Ease.cubicInOut);
 					this.position = order.position;
+					umap[this.position.x][this.position.y] = false;
 					this.currentOrder++;
 					stage.removeChild(order);
 				}else if(order.type == 'wait' && order.waitTime <= 0){

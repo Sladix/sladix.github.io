@@ -30,33 +30,39 @@
       }
 
       //Pour placer des unités
-      if(this.tmpShape != null && map[position.y][position.x])
+      if(this.tmpShape != null)
       {
-        if(event.currentTarget.spawnable)
+        if(map[position.y][position.x])
         {
-          var c = window[this.tmpShape.type];
-          var u = new c(position);
-          if(this.money - u.attributes.price < 0)
+          if(event.currentTarget.spawnable)
           {
-            //display error
-            this.displayError('Not enough money');
-            delete u;
-            delete c;
+            var c = window[this.tmpShape.type];
+            var u = new c(position);
+            if(this.money - u.attributes.price < 0)
+            {
+              //display error
+              this.displayError('Not enough money');
+              delete u;
+              delete c;
+            }else {
+              this.money -= u.attributes.price;
+              units.push(u);
+              stage.addChild(u);
+            }
+
+            //On remove la crotte
+            stage.removeAllEventListeners(); //Attention...
+            stage.removeChild(this.tmpShape);
+            this.tmpShape = null;
+
+            this.updateUI();
           }else {
-            this.money -= u.attributes.price;
-            units.push(u);
-            stage.addChild(u);
+            this.displayError('You can\'t place this unit here');
           }
-
-          //On remove la crotte
-          stage.removeAllEventListeners(); //Attention...
-          stage.removeChild(this.tmpShape);
-          this.tmpShape = null;
-
-          this.updateUI();
         }else {
-          this.displayError('You can\'t place this unit here');
+          this.displayError('This is a wall...');
         }
+
       }
     }
 
@@ -126,7 +132,6 @@
     this.select = function(unit){
       if(this.selectedUnit != null && this.selectedUnit == unit)
       {
-        this.selectedUnit.toggleSelect();
         this.deselect();
         return;
       }else if (this.selectedUnit != null && this.selectedUnit != unit){
@@ -139,15 +144,20 @@
     }
 
     this.deselect = function(){
-      this.selectedUnit = null;
+      if(this.selectedUnit != null)
+      {
+        this.selectedUnit.toggleSelect();
+        this.selectedUnit = null;
+      }
     }
 
 
 
   }
 
-  Lui.prototype.displayError = function(error){
-    var t = new createjs.Text(error,"bold 20px Arial","#FF0000");
+  Lui.prototype.displayMessage = function(message,color)
+  {
+    var t = new createjs.Text(message,"bold 20px Arial",color);
     t.textAlign = "center";
     t.x = stage.canvas.width / 2;
     t.y = 10;
@@ -160,15 +170,20 @@
     },2000);
   }
 
+  Lui.prototype.displayError = function(error){
+    this.displayMessage(error,"#FF0000");
+  }
+
   Lui.prototype.createUnitButton = function(type,text){
     var b = new createjs.Container();
     b.name='button';
     b.type=type;
 
-    var s = new createjs.Shape();
+    var pc = new window[type]({x:-5,y:-5});
+    var s = pc.shape.clone();
     s.name='shape';
-    s.graphics.beginFill("#00FF00").drawRect(0, 0, blocksize, blocksize).endFill();
     b.addChild(s);
+    delete pc;
 
     var t = new createjs.Text(text,"15px Arial",'#FFFFFF');
     t.x = blocksize / 2;
@@ -184,15 +199,17 @@
   }
 
   Lui.prototype.prepareSpawn = function(e){
+    if(this.selectedUnit != null)
+      this.deselect();
+
     if(this.tmpShape != null)
       return;
-      
+
     var type = e.currentTarget.type;
 
     //On crée une copie de la forme désirée
-    this.tmpShape = new createjs.Shape();
+    this.tmpShape = e.currentTarget.getChildByName('shape').clone(true);
     this.tmpShape.type = type;
-    this.tmpShape.graphics = e.currentTarget.getChildByName('shape').graphics.clone(true);
     stage.addChild(this.tmpShape);
 
     stage.on('stagemousemove',this.movePlaceHolderUnit.bind(this));
@@ -229,9 +246,62 @@
     m.textAlign = 'right';
     this.menuBar.addChild(m);
 
-    this.createUnitButton('Unit','Unit');
+    //Unités
+    this.createUnitButton('Unit','Soldier');
+    this.createUnitButton('Archer','Archer');
+
+    var b = new createjs.Container();
+    b.name='button';
+    var t = new createjs.Text("Submit","bold 20px Arial",'#FF0000');
+    t.textAlign = 'left';
+    b.x = stage.canvas.width - 150;
+    b.y = 10;
+    b.addChild(t);
+    this.menuBar.addChild(b);
+    b.on('click',this.submitStrategie.bind(this));
 
     stage.addChild(this.menuBar);
+  }
+
+  Lui.prototype.submitStrategie = function(){
+    // TODO: Vérifier que le mec a des unités (avec des ordres)
+    if(countUnits(0) == 0)
+    {
+      this.displayError("You don't have any units...");
+      return;
+    }
+
+    this.deselect();
+    for (var i = 0; i < units.length; i++) {
+      for (var j = 0; j < units[i].orders.length; j++) {
+        stage.removeChild(units[i].orders[j]);
+      }
+    }
+    playRound();
+  }
+
+  Lui.prototype.endGame = function(){
+    var p1 = 0,p2 = 0;
+    for (var i = 0; i < units.length; i++) {
+      if(units[i].alive)
+      {
+        if(units[i].player == 0)
+          p1++;
+        else {
+          p2++;
+        }
+      }
+    }
+    //TODO : add splashscreen
+    if(p1 > p2)
+    {
+      this.displayMessage("You win !","#00CC3E")
+    }else if(p1 < p2)
+    {
+      this.displayError('You loose..');
+    }else {
+      this.displayError('Draw');
+    }
   }
 
   window.Lui = Lui;

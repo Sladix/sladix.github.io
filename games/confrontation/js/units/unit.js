@@ -1,6 +1,7 @@
 (function (window) {
 	function Unit(pos,options) {
-
+		if(typeof pos == "undefined")
+			return;
   	this.initialize(pos,options);
 	}
 	//ENCULE DE MEEEERDE
@@ -23,8 +24,8 @@
 		// position : {x,y} ou null
 		// }
 		options = options || {};
-		options.attributes = options.hasOwnProperty('attributes')?options.attributes:{
-			movements : 10,
+		this.attributes = {
+			movements : 20,
 			price : 1,
 			speed : 1,
 			life : 2,
@@ -34,24 +35,21 @@
 
 		options.player = options.hasOwnProperty('player')?options.player:0;
 
-		this.attributes = options.attributes;
 		this.player = options.player;
  		this.type = 'Unit';
 
     this.orders = [];
 		this.r = Math.random();
     this.selected = false;
-    this.color = (this.player == 0)?"#00FF00":"#E91F49";
-    this.selectedColor = "#00FFFF";
     this.sightRange = 5;
 		this.x = mapOffsetX + pos.x*blocksize;
 		this.y = mapOffsetY + pos.y*blocksize;
 		this.position = pos;
  		this.snapToPixel = true;
 
-    this.shape = new createjs.Shape();
-    this.shape.graphics.beginFill(this.color).drawRect(0, 0, blocksize, blocksize).endFill();
-    this.addChild(this.shape);
+		//Shape
+    this.initShape();
+
 		var instance = this;
 		if(this.player == 0)
 		{
@@ -62,23 +60,58 @@
 
  	}
 
+	Unit.prototype.initShape = function(){
+		this.color = (this.player == 0)?"#00FF00":"#E91F49";
+    this.selectedColor = "#00FFFF";
+    this.shape = new createjs.Bitmap('images/player_'+this.player+'.png');
+    this.addChild(this.shape);
+	}
+
  	Unit.prototype.tick = function(){
 
  	}
 
 	Unit.prototype.getNearestTarget = function()
 	{
+		var mindist = 9999;
+		var lunit = null;
 		for (var i = 0; i < units.length; i++) {
-			if(units[i].player != this.player && getDistance(this.position,units[i].position) <= this.attributes.range)
+			if(units[i].alive && units[i].player != this.player)
 			{
-				return units[i];
+				var distance = getDistance(this.position,units[i].position);
+				if(distance <= this.attributes.range)
+				{
+					if(distance < mindist){
+						lunit = units[i];
+						mindist = distance;
+					}
+				}
 			}
 		}
-		return null;
+		if(lunit != null)
+			return lunit;
+		else
+			return null;
 	}
 
-	Unit.prototype.fireAt = function(pos){
+	Unit.prototype.fireAt = function(unit){
 
+		var b = new createjs.Shape();
+		b.graphics.beginFill('#EAE413').drawCircle(0, 0, 4);
+
+		b.x = mapOffsetX + this.position.x*blocksize + blocksize/2;
+		b.y = mapOffsetY +this.position.y*blocksize + blocksize/2;
+		stage.addChild(b);
+		var instance = this;
+		createjs.Tween.get(b).to({x:unit.x + blocksize/2,y:unit.y + blocksize/2},300).call(function(){
+			stage.removeChild(b);
+			unit.attributes.life-= instance.attributes.damage;
+			if(unit.attributes.life <= 0)
+			{
+				unit.alive = false;
+				createjs.Tween.get(unit).to({alpha:0},turnTime/2);
+			}
+		})
 	}
 
 
@@ -86,55 +119,60 @@
 	{
 		if(!this.alive)
 			return 1;
+
 		for (var i = 0; i < this.attributes.speed; i++) {
-			if(this.currentOrder == this.orders.length)
-				return 1;
-			// Si on peut pas bouger, on attend
-			var order = this.orders[this.currentOrder];
+			setTimeout(this.doOrder.bind(this),i*(turnTime/this.attributes.speed));
+		}
 
-			//On attend si on le doit
-			// Refaire cette partie là..
-			if(order.type == 'wait' && order.waitTime > 0)
+		if(this.currentOrder == this.orders.length-1)
+			return 1;
+
+		return 0;
+	}
+
+	Unit.prototype.doOrder = function(){
+		// Si on peut voir des ennemis on leur tire dessus
+		// TODO : On recherche les enemis par priorité
+		var n = this.getNearestTarget();
+		if(n != null)
+		{
+			this.fireAt(n);
+		}
+
+		if(this.currentOrder == this.orders.length)
+			return 1;
+		// Si on peut pas bouger, on attend
+		var order = this.orders[this.currentOrder];
+
+		//On attend si on le doit
+		// Refaire cette partie là..
+		if(order.type == 'wait' && order.waitTime > 0)
+		{
+			order.waitTime--;
+		}else {
+			// On bouge si on le peux et doit
+			if(umap[order.position.x][order.position.y] && order.type == 'walk')
 			{
-				order.waitTime--;
-			}else {
-				// On bouge si on le peux et doit
-				if(umap[order.position.x][order.position.y] && order.type == 'walk')
-				{
-					createjs.Tween.get(this).to({x:order.position.x*blocksize + mapOffsetX,y:order.position.y*blocksize + mapOffsetY},turnTime/this.attributes.speed,createjs.Ease.cubicInOut);
-					this.position = order.position;
-					umap[this.position.x][this.position.y] = false;
-					this.currentOrder++;
-					stage.removeChild(order);
-				}else if(order.type == 'wait' && order.waitTime <= 0){
-					this.currentOrder++;
-					stage.removeChild(order);
-				}
-
+				createjs.Tween.get(this).to({x:order.position.x*blocksize + mapOffsetX,y:order.position.y*blocksize + mapOffsetY},turnTime/this.attributes.speed,createjs.Ease.cubicInOut);
+				this.position = order.position;
+				umap[order.position.x][order.position.y] = false;
+				this.currentOrder++;
+			}else if(order.type == 'wait' && order.waitTime <= 0){
+				this.currentOrder++;
 			}
-
-
-
-
-			// Si on peut voir des ennemis on leur tire dessis
-			// TODO : On recherche les enemis par priorité
-			var n = this.getNearestTarget();
-			if(n != null)
-			{
-				this.fireAt(n.position);
-				n.attributes.life--;
-			}
-
-			//On supprime l'ordre du stage
-
 
 		}
-		return 0;
 	}
 
   Unit.prototype.toggleSelect = function(){
     this.selected = !this.selected;
-    this.shape.graphics.clear().beginFill(((this.selected)?this.selectedColor:this.color)).drawRect(0, 0, blocksize, blocksize).endFill();
+		if(this.selected)
+		{
+			this.shape.filters = [new createjs.ColorFilter(0,0,0,1, 186,237,255,0)];
+		}else{
+			this.shape.filters = [];
+		}
+		this.shape.cache(0,0,blocksize,blocksize);
   }
 
   Unit.prototype.addOrder = function(type,position){
@@ -163,7 +201,7 @@
 			d.waitTime = 0;
 
 			var o = new createjs.Shape();
-			o.graphics.setStrokeStyle(4,"round").beginStroke('DeepSkyBlue');
+			o.graphics.setStrokeStyle(2,"round").beginStroke('DeepSkyBlue');
 			o.graphics.moveTo(lastPos.x*blocksize + mapOffsetX + blocksize / 2,lastPos.y*blocksize + mapOffsetY + blocksize / 2);
 			o.graphics.lineTo(position.x*blocksize + mapOffsetX + blocksize / 2, position.y*blocksize + mapOffsetY + blocksize /2).endStroke();
 			if(type == 'wait')

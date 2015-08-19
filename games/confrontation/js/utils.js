@@ -20,5 +20,25 @@ function getHeight() {
 
 function getDistance(pos1,pos2)
 {
-  
+  return Math.round(Math.sqrt( (pos1.x-pos2.x)*(pos1.x-pos2.x) + (pos1.y-pos2.y)*(pos1.y-pos2.y) ));
+}
+
+function countUnits(player)
+{
+  var c = 0;
+  for (var i = 0; i < units.length; i++) {
+    if(units[i].player == player)
+      c++;
+  }
+  return c;
+}
+
+function countAliveUnits()
+{
+  var c = 0;
+  for (var i = 0; i < units.length; i++) {
+    if(units[i].alive)
+      c++;
+  }
+  return c;
 }

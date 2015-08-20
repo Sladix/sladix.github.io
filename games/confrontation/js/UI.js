@@ -261,10 +261,17 @@
     b.x = stage.canvas.width - 150;
     b.y = 10;
     b.addChild(t);
+
+    b.hitArea = this.createHitArea(t);
     this.menuBar.addChild(b);
     b.on('click',this.submitStrategie.bind(this));
-
     stage.addChild(this.menuBar);
+  }
+
+  Lui.prototype.createHitArea = function(obj){
+    var hit = new createjs.Shape();
+		hit.graphics.beginFill("#000").drawRect(0, 0, obj.getMeasuredWidth(), obj.getMeasuredHeight());
+		return hit;
   }
 
   Lui.prototype.submitStrategie = function(){
@@ -332,7 +339,7 @@
     c.y = 100;
     // TODO: CENTER DIS SHIT
     c.x = 200 - splash.getChildrenByName('button').length * 80;
-
+    c.hitArea = this.createHitArea(t);
     c.on('click',this[params.action].bind(this));
 
     splash.addChild(c);

@@ -12,11 +12,13 @@ var stage,
     mapSize = {},
     obstaclesMap = [],
     ui = null,
+    currentLevel = null;
     finder = new PF.AStarFinder({
         allowDiagonal: false
     }),
     blocksize = 16,
-    started = false;
+    started = false,
+    levels = ['intro'];
 
 
 
@@ -30,8 +32,10 @@ function init() {
   // TODO: Ajouter un écran de départ
   // Gestion des sous dans une partie
   ui = new Lui();
+
   //Prévoir un type de niveau, ça c'est la préparation de bataille
   changeLevel('intro');
+  currentLevel = 'intro';
 
   //Bind tickers
   createjs.Ticker.setFPS(60);
@@ -45,14 +49,19 @@ function playRound(){
     if(nextTurn() === false || (new Date()).getTime() - startTime >= 30000)
     {
       clearInterval(linter);
-      ui.endGame();
+      setTimeout(function(){
+          ui.endGame();
+      },turnTime*2)
+
     }
 
   },turnTime);
 }
 
+// TODO : Will only contain units[i].executeNextOrder(); when the battles will be computed server side
 function nextTurn()
 {
+  //Kind of collision map
   umap = [];
   for (var i = 0; i < mapSize.x; i++) {
     umap[i] = [];
@@ -66,9 +75,10 @@ function nextTurn()
         umap[units[i].position.x][units[i].position.y] = false;
     }
   }
-  var stopped = 0;
+
   var p1 = p2 = 0;
   for (var i = 0; i < units.length; i++) {
+    units[i].executeNextOrder()
     if(units[i].alive)
     {
       if(units[i].player == 0)
@@ -79,9 +89,10 @@ function nextTurn()
         p2++;
       }
     }
-    stopped += units[i].executeNextOrder();
+
   }
-  if(stopped == countAliveUnits() || p1 == 0 || p2 == 0)
+
+  if(p1 == 0 || p2 == 0)
     return false;
 
     return true;

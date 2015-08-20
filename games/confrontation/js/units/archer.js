@@ -12,12 +12,16 @@
   }
   Archer.prototype = new Unit();
 
+  //Set the unit shape
   Archer.prototype.initShape = function(){
     this.color = (this.player == 0)?"#00FF00":"#E91F49";
     this.selectedColor = "#00FFFF";
     this.shape = new createjs.Bitmap('images/archer.png');
     this.addChild(this.shape);
   }
+
+  // Set the firing style of the unit
+  // Archer.prototype.fireAt(position)
 
   window.Archer = Archer;
 })(window)

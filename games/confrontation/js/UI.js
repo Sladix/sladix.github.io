@@ -6,9 +6,11 @@
     this.menu = null;
     this.enabled = true;
     this.lastBtnx = 10;
+    this.baseMoney = 6;
     this.money = 6;
     this.tmpShape = null;
     this.menuBar = null;
+    this.splashElement = null;
     // this.initialize();
 
     this.updateUI = function(){
@@ -228,8 +230,10 @@
     }
   }
 
-
-  Lui.prototype.initialize = function(){
+  // TODO: Ajouter des paramètres d'initialization
+  Lui.prototype.initialize = function(params){
+    this.lastBtnx = 10;
+    this.money = this.baseMoney;
     this.menuBar = new createjs.Container();
     this.menuBar.x = 0;
     this.menuBar.y = 0;
@@ -280,6 +284,70 @@
     playRound();
   }
 
+  Lui.prototype.splash = function(text,color,options){
+    this.splashElement = new createjs.Container();
+
+    var bg = new createjs.Shape();
+
+    bg.graphics.beginStroke(color).setStrokeStyle(2);
+    bg.graphics.beginFill("#FFFFFF").drawRect(0,0,400,300);
+
+
+    this.splashElement.addChild(bg);
+
+    var t = new createjs.Text(text,"bold 26px Arial",color);
+    t.textAlign = "center";
+    t.x = 200;
+    t.y = 50;
+    this.splashElement.addChild(t);
+    for (var i = 0; i < options.length; i++) {
+      this.createActionButton(options[i],this.splashElement);
+    }
+    this.splashElement.regX = 200;
+    this.splashElement.regY = 150;
+    this.splashElement.x = stage.canvas.width  / 2;
+    this.splashElement.y = stage.canvas.height  / 2;
+    this.splashElement.scaleX = 0;
+    this.splashElement.scaleY = 0;
+    stage.addChild(this.splashElement);
+    createjs.Tween.get(this.splashElement).to({scaleX:1,scaleY:1},300);
+  }
+
+  Lui.prototype.closeSplash = function(callback){
+    var instance = this;
+    createjs.Tween.get(this.splashElement).to({scaleX:0,scaleY:0},300).call(function(){
+      stage.removeChild(instance.splashElement);
+      instance.splashElement = null;
+      callback.call();
+    });
+  }
+
+  Lui.prototype.createActionButton = function(params,splash){
+
+    var c = new createjs.Container();
+    c.name = 'button';
+    var t = new createjs.Text(params.text,"bold 15px Arial","#000");
+    t.textAlign = "center";
+    c.addChild(t);
+    c.y = 100;
+    // TODO: CENTER DIS SHIT
+    c.x = 200 - splash.getChildrenByName('button').length * 80;
+
+    c.on('click',this[params.action].bind(this));
+
+    splash.addChild(c);
+  }
+
+  Lui.prototype.restartGame = function(){
+    this.closeSplash(function(){
+      changeLevel(currentLevel)
+    });
+  }
+
+  Lui.prototype.nextLevel = function(){
+    this.closeSplash();
+  }
+
   Lui.prototype.endGame = function(){
     var p1 = 0,p2 = 0;
     for (var i = 0; i < units.length; i++) {
@@ -292,13 +360,29 @@
         }
       }
     }
-    //TODO : add splashscreen
+
     if(p1 > p2)
     {
-      this.displayMessage("You win !","#00CC3E")
+      var options = [
+        {
+          text : "Continue",
+          action : 'nextLevel'
+        },
+        {
+          text : "Restart",
+          action : 'restartGame'
+        }
+      ];
+      this.splash("You win !","#00CC3E",options);
     }else if(p1 < p2)
     {
-      this.displayError('You loose..');
+      var options = [
+        {
+          text : "Restart",
+          action : 'restartGame'
+        }
+      ];
+      this.splash("You Loose !","#FF0000",options);
     }else {
       this.displayError('Draw');
     }

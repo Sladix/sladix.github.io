@@ -4,10 +4,7 @@
 			return;
   	this.initialize(pos,options);
 	}
-	//ENCULE DE MEEEERDE
-	//ENCULE DE MEEEERDE DE FILS DE PUTE
-	//ENCULE DE MEEEERDE DE FILS DE PUTE DE CHIEN
-	//ENCULE DE MEEEERDE DE FILS DE PUTE DE CHIEN GALLEUX
+
 	Unit.prototype = new createjs.Container();
   Unit.prototype.Container_initialize = Unit.prototype.initialize;
   Unit.prototype.Container_tick = Unit.prototype._tick;
@@ -27,7 +24,7 @@
 		this.attributes = {
 			movements : 20,
 			price : 1,
-			speed : 1,
+			speed : 2,
 			life : 2,
 			range : 2,
 			damage : 1
@@ -118,16 +115,16 @@
 	Unit.prototype.executeNextOrder = function()
 	{
 		if(!this.alive)
-			return 1;
+			return false;
 
 		for (var i = 0; i < this.attributes.speed; i++) {
 			setTimeout(this.doOrder.bind(this),i*(turnTime/this.attributes.speed));
 		}
 
 		if(this.currentOrder == this.orders.length-1)
-			return 1;
+			return false;
 
-		return 0;
+		return true;
 	}
 
 	Unit.prototype.doOrder = function(){

@@ -42,3 +42,14 @@ function countAliveUnits()
   }
   return c;
 }
+
+createjs.Container.prototype.getChildrenByName = function(name){
+  var c = this.children,
+      res = [];
+  for (var i=0,l=c.length;i<l;i++) {
+			if(c[i].name == name) {
+        res.push(c[i]);
+      }
+		}
+  return res;
+}

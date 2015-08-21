@@ -46,8 +46,10 @@
         //o.graphics.beginFill(color).drawRect(j*blocksize, i*blocksize, blocksize, blocksize);
 				o.x = j * blocksize;
 				o.y = i * blocksize;
+				o.alpha = 0;
 				terrain.name='terrain';
         terrain.addChild(o);
+				createjs.Tween.get(o).to({alpha:1},500+((i*j)*5));
 				tiles.push(o);
 				// GOD DAMN IT MOTHERFUCKER GOD DAMN IT MOTHERFUCKER GOD DAMN IT MOTHERFUCKER GOD DAMN IT MOTHERFUCKER
 				o.addEventListener('click',ui.tileClick.bind(ui),false);

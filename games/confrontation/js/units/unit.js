@@ -15,11 +15,6 @@
 		this.Container_initialize();
 		this.alive = true;
 		this.currentOrder = 0;
-		//Order :
-		// {
-		// type : 'move' ou 'wait'
-		// position : {x,y} ou null
-		// }
 		options = options || {};
 		this.attributes = {
 			movements : 20,
@@ -115,16 +110,16 @@
 	Unit.prototype.executeNextOrder = function()
 	{
 		if(!this.alive)
-			return false;
+			return null;
 
 		for (var i = 0; i < this.attributes.speed; i++) {
 			setTimeout(this.doOrder.bind(this),i*(turnTime/this.attributes.speed));
 		}
 
 		if(this.currentOrder == this.orders.length-1)
-			return false;
+			return true;
 
-		return true;
+		return false;
 	}
 
 	Unit.prototype.doOrder = function(){

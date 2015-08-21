@@ -1,3 +1,4 @@
+// TODO: Wrap this variables in a Game Object
 var stage,
     canvas,
     keys = [],
@@ -26,21 +27,45 @@ var stage,
 function init() {
 
   var canvas = document.getElementById("game");
-  canvas.width = 800;//window.innerWidth;
-  canvas.height = 600;//window.innerHeight;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
   stage = new createjs.Stage("game");
   // TODO: Ajouter un écran de départ
   // Gestion des sous dans une partie
   ui = new Lui();
 
   //Prévoir un type de niveau, ça c'est la préparation de bataille
-  changeLevel('intro');
-  currentLevel = 'intro';
+  currentLevel = 0;
+  homeScreen();
+
 
   //Bind tickers
   createjs.Ticker.setFPS(60);
   createjs.Ticker.addEventListener("tick", tick);
 
+}
+
+function homeScreen(){
+  var c = new createjs.Container();
+
+  var title = new createjs.Text("Confrontation","bold 40px Arial","#000");
+  title.textAlign = "center";
+  title.x = stage.canvas.width / 2;
+  title.y = 50;
+
+  c.addChild(title);
+  var c2 = new createjs.Container();
+
+  c2.x = stage.canvas.width / 2;
+  c2.y = 150;
+  var t = new createjs.Text("New Game","bold 26px Arial","#000");
+  t.textAlign = "center";
+  c2.hitArea = ui.createHitArea(t);
+  c2.on('click',changeLevel);
+  c2.addChild(t);
+  c.addChild(c2);
+
+  stage.addChild(c);
 }
 
 function playRound(){
@@ -76,11 +101,14 @@ function nextTurn()
     }
   }
 
-  var p1 = p2 = 0;
+  var p1 = p2 = 0,finished = 0;
   for (var i = 0; i < units.length; i++) {
-    units[i].executeNextOrder()
     if(units[i].alive)
     {
+      
+      if(units[i].executeNextOrder())
+        finished++;
+
       if(units[i].player == 0)
       {
         p1++;
@@ -92,14 +120,19 @@ function nextTurn()
 
   }
 
-  if(p1 == 0 || p2 == 0)
+  if(p1 == 0 || p2 == 0 || countAliveUnits() == finished)
     return false;
 
     return true;
 }
 
-function changeLevel(levelName)
+function changeLevel(level)
 {
+  if(typeof level != "number")
+    level = 0;
+
+  var levelName = levels[level];
+
   units = [],tiles = [];
   stage.removeAllChildren();
   ui.initialize();

@@ -29,11 +29,14 @@
     for (var i = 0; i < strat.length; i++) {
       var u = new window[strat[i].type](strat[i].position,{player:strat[i].player});
       u.orders = strat[i].orders;
+      u.y = -100;
       u.attributes.movements -= u.orders.length;
       if(u.player == 0)
         ui.money -= u.attributes.price;
 
+      //u.alpha = 0;
       stage.addChild(u);
+      createjs.Tween.get(u).to({y:strat[i].position.y * blocksize+mapOffsetY},200*i+500,createjs.Ease.cubicInOut);
       units.push(u);
     }
     ui.updateUI();

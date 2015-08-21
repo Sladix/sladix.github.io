@@ -270,11 +270,15 @@
 
   Lui.prototype.createHitArea = function(obj){
     var hit = new createjs.Shape();
-		hit.graphics.beginFill("#000").drawRect(0, 0, obj.getMeasuredWidth(), obj.getMeasuredHeight());
+    var offsetX = (obj.textAlign == "center")?(obj.getMeasuredWidth())/2:0;
+		hit.graphics.beginFill("#000").drawRect(obj.x-obj.regX-offsetX, obj.y-obj.regY, obj.getMeasuredWidth(), obj.getMeasuredHeight());
 		return hit;
   }
 
   Lui.prototype.submitStrategie = function(){
+    if(started)
+      return;
+
     // TODO: Vérifier que le mec a des unités (avec des ordres)
     if(countUnits(0) == 0)
     {
@@ -289,6 +293,7 @@
       }
     }
     playRound();
+    started = true;
   }
 
   Lui.prototype.splash = function(text,color,options){
@@ -325,7 +330,8 @@
     createjs.Tween.get(this.splashElement).to({scaleX:0,scaleY:0},300).call(function(){
       stage.removeChild(instance.splashElement);
       instance.splashElement = null;
-      callback.call();
+      if(typeof callback == "function")
+        callback.call();
     });
   }
 
@@ -391,8 +397,15 @@
       ];
       this.splash("You Loose !","#FF0000",options);
     }else {
-      this.displayError('Draw');
+      var options = [
+        {
+          text : "Restart",
+          action : 'restartGame'
+        }
+      ];
+      this.splash("Draw ...","#FF0000",options);
     }
+    started = false;
   }
 
   window.Lui = Lui;

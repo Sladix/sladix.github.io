@@ -36,7 +36,7 @@
 
       //u.alpha = 0;
       stage.addChild(u);
-      createjs.Tween.get(u).to({y:strat[i].position.y * blocksize+mapOffsetY},200*i+500,createjs.Ease.cubicInOut);
+      createjs.Tween.get(u).to({y:strat[i].position.y * blocksize+mapOffsetY + blocksize/2},200*i+500,createjs.Ease.cubicInOut);
       units.push(u);
     }
     ui.updateUI();

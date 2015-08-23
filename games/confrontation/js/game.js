@@ -17,9 +17,11 @@ var stage,
     finder = new PF.AStarFinder({
         allowDiagonal: false
     }),
-    blocksize = 16,
-    started = false,
-    levels = ['intro'];
+    blocksize = 32, // passer en 32
+    started = false // Pour empecher de resoumettre,
+    levels = ['intro','level_1'],
+    captureTreshold = 3,
+    winner = null
 
 
 
@@ -35,7 +37,7 @@ function init() {
   ui = new Lui();
 
   //Prévoir un type de niveau, ça c'est la préparation de bataille
-  currentLevel = 0;
+  currentLevel = 1;
   homeScreen();
 
 
@@ -45,6 +47,9 @@ function init() {
 
 }
 
+// --------------------
+// Solution temporaire
+// --------------------
 function homeScreen(){
   var c = new createjs.Container();
 
@@ -68,21 +73,32 @@ function homeScreen(){
   stage.addChild(c);
 }
 
+// --------------------
+// On joue la partie
+// --------------------
 function playRound(){
+  winner = null;
   var startTime = (new Date()).getTime();
+
+  started = true;
   var linter = setInterval(function(){
     if(nextTurn() === false || (new Date()).getTime() - startTime >= 30000)
     {
+
+      started = false;
       clearInterval(linter);
       setTimeout(function(){
           ui.endGame();
-      },turnTime*2)
+      },turnTime*0.75);
 
     }
 
   },turnTime);
 }
 
+// --------------------
+// On joue chaque tour
+// --------------------
 // TODO : Will only contain units[i].executeNextOrder(); when the battles will be computed server side
 function nextTurn()
 {
@@ -105,9 +121,14 @@ function nextTurn()
   for (var i = 0; i < units.length; i++) {
     if(units[i].alive)
     {
-      
-      if(units[i].executeNextOrder())
-        finished++;
+
+      if(units[i].stayed >= captureTreshold)
+      {
+        winner = units[i].player;
+        return false;
+      }
+
+      units[i].executeNextOrder()
 
       if(units[i].player == 0)
       {
@@ -120,16 +141,19 @@ function nextTurn()
 
   }
 
-  if(p1 == 0 || p2 == 0 || countAliveUnits() == finished)
+  if(p1 == 0 || p2 == 0)
     return false;
 
     return true;
 }
 
+// --------------------
+// Changement de niveaux
+// --------------------
 function changeLevel(level)
 {
   if(typeof level != "number")
-    level = 0;
+    level = 1;
 
   var levelName = levels[level];
 
@@ -145,6 +169,9 @@ function changeLevel(level)
   });
 }
 
+// --------------------
+// Chargement d'une strategie;
+// --------------------
 function loadStrat(strat)
 {
   var s = new Strategie();

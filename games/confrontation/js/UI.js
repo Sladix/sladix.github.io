@@ -53,9 +53,7 @@
             }
 
             //On remove la crotte
-            stage.removeAllEventListeners(); //Attention...
-            stage.removeChild(this.tmpShape);
-            this.tmpShape = null;
+            this.removeTmpShape();
 
             this.updateUI();
           }else {
@@ -132,6 +130,8 @@
     }
 
     this.select = function(unit){
+      if(started)
+        return;
       if(this.selectedUnit != null && this.selectedUnit == unit)
       {
         this.deselect();
@@ -139,7 +139,10 @@
       }else if (this.selectedUnit != null && this.selectedUnit != unit){
         this.selectedUnit.toggleSelect();
       }
-
+      if(this.tmpShape != null)
+      {
+        this.removeTmpShape();
+      }
       this.selectedUnit = unit;
       this.selectedUnit.toggleSelect();
 
@@ -155,6 +158,13 @@
 
 
 
+  }
+
+  Lui.prototype.removeTmpShape = function()
+  {
+    stage.removeAllEventListeners(); //Attention...
+    stage.removeChild(this.tmpShape);
+    this.tmpShape = null;
   }
 
   Lui.prototype.displayMessage = function(message,color)
@@ -181,7 +191,7 @@
     b.name='button';
     b.type=type;
 
-    var pc = new window[type]({x:-5,y:-5});
+    var pc = new window[type]();
     var s = pc.shape.clone();
     s.name='shape';
     b.addChild(s);
@@ -194,7 +204,7 @@
     b.addChild(t);
 
     b.x = this.lastBtnx + b.getBounds().width + 10;
-    b.y = 10;
+    b.y = 5;
     this.lastBtnx = b.x;
     this.menuBar.addChild(b);
     b.addEventListener('click',this.prepareSpawn.bind(this),false);
@@ -205,13 +215,15 @@
       this.deselect();
 
     if(this.tmpShape != null)
-      return;
+      this.removeTmpShape();
 
     var type = e.currentTarget.type;
 
     //On crée une copie de la forme désirée
     this.tmpShape = e.currentTarget.getChildByName('shape').clone(true);
     this.tmpShape.type = type;
+    this.tmpShape.x = e.stageX + blocksize/2;
+    this.tmpShape.y = e.stageY + blocksize/2;
     stage.addChild(this.tmpShape);
 
     stage.on('stagemousemove',this.movePlaceHolderUnit.bind(this));
@@ -225,8 +237,8 @@
       this.tmpShape.x = position.x * blocksize + mapOffsetX;
       this.tmpShape.y = position.y * blocksize + mapOffsetY;
     }else {
-      this.tmpShape.x = evt.stageX;
-      this.tmpShape.y = evt.stageY;
+      this.tmpShape.x = evt.stageX - blocksize/2;
+      this.tmpShape.y = evt.stageY - blocksize/2;
     }
   }
 
@@ -238,7 +250,7 @@
     this.menuBar.x = 0;
     this.menuBar.y = 0;
     var s = new createjs.Shape();
-    s.graphics.beginFill("#333333").drawRect(0,0,stage.canvas.width,50);
+    s.graphics.beginFill("#333333").drawRect(0,0,stage.canvas.width,55);
     s.x = 0;
     s.y = 0;
     this.menuBar.addChild(s);
@@ -255,8 +267,9 @@
     this.createUnitButton('Archer','Archer');
 
     var b = new createjs.Container();
-    b.name='button';
+    b.name='submit';
     var t = new createjs.Text("Submit","bold 20px Arial",'#FF0000');
+    t.name = "text";
     t.textAlign = 'left';
     b.x = stage.canvas.width - 150;
     b.y = 10;
@@ -271,7 +284,7 @@
   Lui.prototype.createHitArea = function(obj){
     var hit = new createjs.Shape();
     var offsetX = (obj.textAlign == "center")?(obj.getMeasuredWidth())/2:0;
-		hit.graphics.beginFill("#000").drawRect(obj.x-obj.regX-offsetX, obj.y-obj.regY, obj.getMeasuredWidth(), obj.getMeasuredHeight());
+		hit.graphics.beginFill("pink").drawRect(obj.x-obj.regX-offsetX, obj.y-obj.regY, obj.getMeasuredWidth(), obj.getMeasuredHeight());
 		return hit;
   }
 
@@ -293,7 +306,9 @@
       }
     }
     playRound();
-    started = true;
+
+    //On remplace le label
+    this.menuBar.getChildByName('submit').removeChild(this.menuBar.getChildByName('submit').getChildByName('text'));
   }
 
   Lui.prototype.splash = function(text,color,options){
@@ -312,9 +327,13 @@
     t.x = 200;
     t.y = 50;
     this.splashElement.addChild(t);
+    var c = new createjs.Container();
     for (var i = 0; i < options.length; i++) {
-      this.createActionButton(options[i],this.splashElement);
+      this.createActionButton(options[i],c);
     }
+    c.x = 200 - (c.getBounds().width / 2);
+    this.splashElement.addChild(c);
+
     this.splashElement.regX = 200;
     this.splashElement.regY = 150;
     this.splashElement.x = stage.canvas.width  / 2;
@@ -335,20 +354,19 @@
     });
   }
 
-  Lui.prototype.createActionButton = function(params,splash){
-
+  Lui.prototype.createActionButton = function(params,container){
     var c = new createjs.Container();
-    c.name = 'button';
+    c.name = "button";
     var t = new createjs.Text(params.text,"bold 15px Arial","#000");
-    t.textAlign = "center";
+
+    t.textAlign = "left";
     c.addChild(t);
     c.y = 100;
     // TODO: CENTER DIS SHIT
-    c.x = 200 - splash.getChildrenByName('button').length * 80;
+    c.x = 0 + container.getChildrenWidth('button') + (20 * container.getChildrenByName('button').length);
     c.hitArea = this.createHitArea(t);
     c.on('click',this[params.action].bind(this));
-
-    splash.addChild(c);
+    container.addChild(c);
   }
 
   Lui.prototype.restartGame = function(){
@@ -359,6 +377,15 @@
 
   Lui.prototype.nextLevel = function(){
     this.closeSplash();
+    currentLevel++;
+    changeLevel(currentLevel);
+  }
+
+  Lui.prototype.resetRound = function(){
+    this.closeSplash(playRound);
+    for (var i = 0; i < units.length; i++) {
+      units[i].reset();
+    }
   }
 
   Lui.prototype.endGame = function(){
@@ -373,10 +400,31 @@
         }
       }
     }
-
-    if(p1 > p2)
+    var options = [
+      {
+        text : "Replay",
+        action : 'resetRound'
+      }
+    ];
+    var state = null;
+    // 0 = Draw
+    // 1 = win
+    // 2 = Loose
+    if(winner != null)
     {
-      var options = [
+      state = (winner == 0)?1:2;
+    }else if(p1 > p2)
+    {
+      state = 1;
+    }else if (p1 < p2) {
+      state = 2;
+    }else{
+      state = 0;
+    }
+
+    if(state == 1)
+    {
+      options = options.concat([
         {
           text : "Continue",
           action : 'nextLevel'
@@ -385,24 +433,24 @@
           text : "Restart",
           action : 'restartGame'
         }
-      ];
+      ]);
       this.splash("You win !","#00CC3E",options);
-    }else if(p1 < p2)
+    }else if(state == 2)
     {
-      var options = [
+      options = options.concat([
         {
           text : "Restart",
           action : 'restartGame'
         }
-      ];
+      ]);
       this.splash("You Loose !","#FF0000",options);
-    }else {
-      var options = [
+    }else if(state == 0){
+      options = options.concat([
         {
           text : "Restart",
           action : 'restartGame'
         }
-      ];
+      ]);
       this.splash("Draw ...","#FF0000",options);
     }
     started = false;

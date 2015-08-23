@@ -23,6 +23,10 @@ function getDistance(pos1,pos2)
   return Math.round(Math.sqrt( (pos1.x-pos2.x)*(pos1.x-pos2.x) + (pos1.y-pos2.y)*(pos1.y-pos2.y) ));
 }
 
+function getAngle(p1,p2){
+  return angleDeg = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+}
+
 function countUnits(player)
 {
   var c = 0;
@@ -52,4 +56,13 @@ createjs.Container.prototype.getChildrenByName = function(name){
       }
 		}
   return res;
+}
+
+createjs.Container.prototype.getChildrenWidth = function(name){
+  var childs = this.getChildrenByName(name);
+  var width = 0;
+  for (var i = 0; i < childs.length; i++) {
+    width +=childs[i].getBounds().width;
+  }
+  return width;
 }

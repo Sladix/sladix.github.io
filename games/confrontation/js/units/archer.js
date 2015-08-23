@@ -1,6 +1,11 @@
 (function(window){
   function Archer(pos,options){
     this.initialize(pos,options);
+  }
+  Archer.prototype = new Unit();
+
+
+  Archer.prototype.initAttributes = function(){
     this.attributes = {
 			movements : 20,
 			price : 3,
@@ -8,10 +13,8 @@
 			life : 1,
 			range : 4,
 			damage : 2
-		};
+		}
   }
-  Archer.prototype = new Unit();
-
   //Set the unit shape
   Archer.prototype.initShape = function(){
     this.color = (this.player == 0)?"#00FF00":"#E91F49";

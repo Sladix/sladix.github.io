@@ -1,7 +1,11 @@
 (function (window) {
 	function Unit(pos,options) {
 		if(typeof pos == "undefined")
+		{
+			this.baseInit();
 			return;
+		}
+
   	this.initialize(pos,options);
 	}
 
@@ -11,36 +15,60 @@
 
  	// initialize the object
   // Taille = 32*32
+ 	Unit.prototype.baseInit = function () {
+		this.player = 0;
+		this.initShape();
+		this.initAttributes();
+	}
  	Unit.prototype.initialize = function (pos,options) {
+		if(typeof pos == "undefined")
+		{
+			this.baseInit();
+			return;
+		}
+
 		this.Container_initialize();
 		this.alive = true;
 		this.currentOrder = 0;
 		options = options || {};
-		this.attributes = {
-			movements : 20,
-			price : 1,
-			speed : 2,
-			life : 2,
-			range : 2,
-			damage : 1
-		};
+
+		this.initAttributes();
+		this.currentLife = this.attributes.life;
+		this.currentMovements = this.attributes.movements;
 
 		options.player = options.hasOwnProperty('player')?options.player:0;
 
 		this.player = options.player;
  		this.type = 'Unit';
-
     this.orders = [];
+		this.currentWaitTime = null;
+		this.stayed = 0;
 		this.r = Math.random();
     this.selected = false;
-    this.sightRange = 5;
-		this.x = mapOffsetX + pos.x*blocksize;
-		this.y = mapOffsetY + pos.y*blocksize;
+
+
 		this.position = pos;
- 		this.snapToPixel = true;
+		this.initialPosition = pos;
 
 		//Shape
     this.initShape();
+
+		this.compteur = new createjs.Text("","bold 16px Arial","#FFF");
+		this.compteur.textAlign = "center";
+		this.compteur.x = blocksize / 2;
+		this.compteur.y = blocksize / 2;
+		this.addChild(this.compteur);
+
+		this.regX = blocksize / 2;
+		this.regY = blocksize / 2;
+
+		this.x = this.position.x *blocksize + mapOffsetX + this.regX;
+		this.y = this.position.y * blocksize + mapOffsetY + this.regY;
+
+
+		this.rotation = (this.player == 0)?0:180;
+		this.baseRotation = this.rotation;
+		this.correctif = 90;
 
 		var instance = this;
 		if(this.player == 0)
@@ -52,7 +80,19 @@
 
  	}
 
+	Unit.prototype.initAttributes = function(){
+		this.attributes = {
+			movements : 20,
+			price : 1,
+			speed : 2,
+			life : 2,
+			range : 2,
+			damage : 1
+		};
+	}
+
 	Unit.prototype.initShape = function(){
+		this.snapToPixel = true;
 		this.color = (this.player == 0)?"#00FF00":"#E91F49";
     this.selectedColor = "#00FFFF";
     this.shape = new createjs.Bitmap('images/player_'+this.player+'.png');
@@ -63,10 +103,22 @@
 
  	}
 
+	Unit.prototype.reset = function(){
+		this.position = this.initialPosition;
+		this.x = this.position.x * blocksize + mapOffsetX + this.regX;
+		this.y = this.position.y * blocksize + mapOffsetY + this.regY;
+		this.currentOrder = 0;
+		this.stayed = 0;
+		this.alpha = 1;
+		this.alive = true;
+		this.rotation = this.baseRotation;
+		this.currentLife = this.attributes.life;
+	}
+
 	Unit.prototype.getNearestTarget = function()
 	{
 		var mindist = 9999;
-		var lunit = null;
+		var lunits = [];
 		for (var i = 0; i < units.length; i++) {
 			if(units[i].alive && units[i].player != this.player)
 			{
@@ -74,14 +126,17 @@
 				if(distance <= this.attributes.range)
 				{
 					if(distance < mindist){
-						lunit = units[i];
+						lunits = [units[i]];
 						mindist = distance;
+					}else if(distance == mindist)
+					{
+						lunits.push(units[i]);
 					}
 				}
 			}
 		}
-		if(lunit != null)
-			return lunit;
+		if(lunits.length > 0)
+			return lunits[Math.floor(Math.random()*lunits.length)];
 		else
 			return null;
 	}
@@ -95,10 +150,10 @@
 		b.y = mapOffsetY +this.position.y*blocksize + blocksize/2;
 		stage.addChild(b);
 		var instance = this;
-		createjs.Tween.get(b).to({x:unit.x + blocksize/2,y:unit.y + blocksize/2},300).call(function(){
+		createjs.Tween.get(b).to({x:unit.x,y:unit.y},300).call(function(){
 			stage.removeChild(b);
-			unit.attributes.life-= instance.attributes.damage;
-			if(unit.attributes.life <= 0)
+			unit.currentLife-= instance.attributes.damage;
+			if(unit.currentLife <= 0)
 			{
 				unit.alive = false;
 				createjs.Tween.get(unit).to({alpha:0},turnTime/2);
@@ -110,19 +165,31 @@
 	Unit.prototype.executeNextOrder = function()
 	{
 		if(!this.alive)
-			return null;
+			return true;
+
+		if(tiles[this.position.y][this.position.x].zone == true)
+		{
+			this.stayed++;
+			this.compteur.text = this.stayed;
+		}
+		else {
+			this.stayed = 0;
+			this.compteur.text = "";
+		}
 
 		for (var i = 0; i < this.attributes.speed; i++) {
 			setTimeout(this.doOrder.bind(this),i*(turnTime/this.attributes.speed));
 		}
 
-		if(this.currentOrder == this.orders.length-1)
+		if(this.currentOrder == this.orders.length)
 			return true;
 
 		return false;
 	}
 
 	Unit.prototype.doOrder = function(){
+		if(!this.alive)
+			return;
 		// Si on peut voir des ennemis on leur tire dessus
 		// TODO : On recherche les enemis par priorité
 		var n = this.getNearestTarget();
@@ -138,22 +205,32 @@
 
 		//On attend si on le doit
 		// Refaire cette partie là..
-		if(order.type == 'wait' && order.waitTime > 0)
+		if(order.type == 'wait' && this.currentWaitTime == null)
 		{
-			order.waitTime--;
+				this.currentWaitTime = order.waitTime;
+		}
+
+		if(this.currentWaitTime > 0)
+		{
+			this.currentWaitTime--;
 		}else {
-			// On bouge si on le peux et doit
 			if(umap[order.position.x][order.position.y] && order.type == 'walk')
 			{
-				createjs.Tween.get(this).to({x:order.position.x*blocksize + mapOffsetX,y:order.position.y*blocksize + mapOffsetY},turnTime/this.attributes.speed,createjs.Ease.cubicInOut);
+				this.move(order.position);
 				this.position = order.position;
 				umap[order.position.x][order.position.y] = false;
 				this.currentOrder++;
-			}else if(order.type == 'wait' && order.waitTime <= 0){
+			}else if(this.currentWaitTime == 0)
+			{
+				this.currentWaitTime = null;
 				this.currentOrder++;
 			}
-
 		}
+	}
+
+	Unit.prototype.move = function(where){
+		var r = getAngle(this.position,where) + this.correctif;
+		createjs.Tween.get(this).to({rotation:r},100).to({x:where.x*blocksize + mapOffsetX  + this.regX,y:where.y*blocksize + mapOffsetY + this.regY},turnTime/this.attributes.speed,createjs.Ease.cubicInOut);
 	}
 
   Unit.prototype.toggleSelect = function(){
@@ -161,14 +238,20 @@
 		if(this.selected)
 		{
 			this.shape.filters = [new createjs.ColorFilter(0,0,0,1, 186,237,255,0)];
+			for (var i = 0; i < this.orders.length; i++) {
+				this.orders[i].alpha = 1;
+			}
 		}else{
 			this.shape.filters = [];
+			for (var i = 0; i < this.orders.length; i++) {
+				this.orders[i].alpha = 0;
+			}
 		}
 		this.shape.cache(0,0,blocksize,blocksize);
   }
 
   Unit.prototype.addOrder = function(type,position){
-		if(this.attributes.movements <= 0)
+		if(this.currentMovements <= 0)
 			return false;
 
 		//On les dessine
@@ -217,7 +300,7 @@
 			stage.addChild(d);
 			this.orders.push(d);
 			//On enlève un mouvement seulement si on marche;
-			this.attributes.movements--;
+			this.currentMovements--;
 		}
 
 		return true;
@@ -229,7 +312,7 @@
 			stage.removeChild(this.orders[i]);
 		}
 		this.orders = [];
-		this.attributes.movements = 10;
+		this.currentMovements = this.attributes.movements;
 	}
 
  	Unit.prototype.remove = function(){

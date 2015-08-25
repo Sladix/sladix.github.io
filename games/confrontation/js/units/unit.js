@@ -128,11 +128,11 @@
 			}
 		};
 		// Debug
-		var c = new createjs.Shape();
-		c.graphics.setStrokeStyle(2);
-		c.graphics.beginStroke('red');
-		c.graphics.moveTo(ray.a.x,ray.a.y).lineTo(ray.b.x,ray.b.y);
-		stage.addChild(c);
+		// var c = new createjs.Shape();
+		// c.graphics.setStrokeStyle(2);
+		// c.graphics.beginStroke('red');
+		// c.graphics.moveTo(ray.a.x,ray.a.y).lineTo(ray.b.x,ray.b.y);
+		// stage.addChild(c);
 		// Find CLOSEST intersection
 		var closestIntersect = null;
 		for(var i=0;i<segments.length;i++){
@@ -157,15 +157,15 @@
 				if(distance <= this.attributes.range)
 				{
 					var intersection = this.castRay({x:units[i].x,y:units[i].y});
-					
+
 					if(intersection != null)
 					{
 						// Debug
-						var c = new createjs.Shape();
-						c.graphics.beginFill('red').drawCircle(0, 0, 4);
-						c.x = intersection.x;
-						c.y = intersection.y;
-						stage.addChild(c);
+						// var c = new createjs.Shape();
+						// c.graphics.beginFill('red').drawCircle(0, 0, 4);
+						// c.x = intersection.x;
+						// c.y = intersection.y;
+						// stage.addChild(c);
 						// Si l'intersection du raycast est dans le range, alors c'est bon
 						var d = getDistance({x:this.x,y:this.y},intersection) / blocksize;
 						if(d > this.attributes.range)

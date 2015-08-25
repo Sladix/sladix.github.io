@@ -92,7 +92,6 @@
 	}
 
 	Unit.prototype.initShape = function(){
-		this.snapToPixel = true;
 		this.color = (this.player == 0)?"#00FF00":"#E91F49";
     this.selectedColor = "#00FFFF";
     this.shape = new createjs.Bitmap('images/player_'+this.player+'.png');
@@ -129,11 +128,11 @@
 			}
 		};
 		// Debug
-		// var c = new createjs.Shape();
-		// c.graphics.setStrokeStyle(2);
-		// c.graphics.beginStroke('red');
-		// c.graphics.moveTo(ray.a.x,ray.a.y).lineTo(ray.b.x,ray.b.y);
-		// stage.addChild(c);
+		var c = new createjs.Shape();
+		c.graphics.setStrokeStyle(2);
+		c.graphics.beginStroke('red');
+		c.graphics.moveTo(ray.a.x,ray.a.y).lineTo(ray.b.x,ray.b.y);
+		stage.addChild(c);
 		// Find CLOSEST intersection
 		var closestIntersect = null;
 		for(var i=0;i<segments.length;i++){
@@ -158,16 +157,21 @@
 				if(distance <= this.attributes.range)
 				{
 					var intersection = this.castRay({x:units[i].x,y:units[i].y});
+					
 					if(intersection != null)
 					{
 						// Debug
-						// var c = new createjs.Shape();
-						// c.graphics.beginFill('red').drawCircle(0, 0, 4);
-						// c.x = intersection.x;
-						// c.y = intersection.y;
-						// stage.addChild(c);
+						var c = new createjs.Shape();
+						c.graphics.beginFill('red').drawCircle(0, 0, 4);
+						c.x = intersection.x;
+						c.y = intersection.y;
+						stage.addChild(c);
+						// Si l'intersection du raycast est dans le range, alors c'est bon
+						var d = getDistance({x:this.x,y:this.y},intersection) / blocksize;
+						if(d > this.attributes.range)
+							intersection = null;
 					}
-					if(intersection == null)
+					if(intersection == null || isNaN(intersection.param))
 					{
 						if(distance < mindist){
 							lunits = [units[i]];
@@ -187,23 +191,26 @@
 	}
 
 	Unit.prototype.fireAt = function(unit){
-
-		var b = new createjs.Shape();
-		b.graphics.beginFill('#EAE413').drawCircle(0, 0, 4);
-
-		b.x = mapOffsetX + this.position.x*blocksize + blocksize/2;
-		b.y = mapOffsetY +this.position.y*blocksize + blocksize/2;
-		stage.addChild(b);
+		//Soucis ici...
+		var angle = Math.floor(getAngle({x:this.x,y:this.y},{x:unit.x,y:unit.y}));
 		var instance = this;
-		createjs.Tween.get(b).to({x:unit.x,y:unit.y},300).call(function(){
-			stage.removeChild(b);
-			unit.currentLife-= instance.attributes.damage;
-			if(unit.currentLife <= 0)
-			{
-				unit.alive = false;
-				createjs.Tween.get(unit).to({alpha:0},turnTime/2);
-			}
-		})
+		createjs.Tween.get(this).to({rotation:angle+instance.correctif},100).call(function(){
+			var b = new createjs.Shape();
+			b.graphics.beginFill('#EAE413').drawCircle(0, 0, 4);
+			b.x = instance.x;
+			b.y = instance.y;
+			stage.addChild(b);
+			createjs.Tween.get(b).to({x:unit.x,y:unit.y},(turnTime/instance.attributes.speed) / 2).call(function(){
+				stage.removeChild(b);
+				unit.currentLife-= instance.attributes.damage;
+				if(unit.currentLife <= 0)
+				{
+					unit.alive = false;
+					createjs.Tween.get(unit).to({alpha:0},turnTime/2);
+				}
+			})
+		});
+
 	}
 
 

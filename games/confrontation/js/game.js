@@ -13,7 +13,7 @@ var stage,
     mapSize = {},
     obstaclesMap = [],
     ui = null,
-    currentLevel = null;
+    currentLevel = 0;
     finder = new PF.AStarFinder({
         allowDiagonal: false
     }),
@@ -37,7 +37,6 @@ function init() {
   ui = new Lui();
 
   //Prévoir un type de niveau, ça c'est la préparation de bataille
-  currentLevel = 1;
   homeScreen();
 
 
@@ -153,7 +152,7 @@ function nextTurn()
 function changeLevel(level)
 {
   if(typeof level != "number")
-    level = 1;
+    level = 0;
 
   var levelName = levels[level];
 

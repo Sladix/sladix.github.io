@@ -7,7 +7,7 @@
     this.enabled = true;
     this.lastBtnx = 10;
     this.baseMoney = 6;
-    this.money = 6;
+    this.money = 0;
     this.tmpShape = null;
     this.menuBar = null;
     this.splashElement = null;

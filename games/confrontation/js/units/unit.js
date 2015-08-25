@@ -115,6 +115,38 @@
 		this.currentLife = this.attributes.life;
 	}
 
+
+	Unit.prototype.castRay = function(where){
+		var segments = getWallSegments(map);
+		var ray = {
+			a : {
+				x : this.x,
+				y : this.y
+			},
+			b : {
+				x : where.x,
+				y : where.y
+			}
+		};
+		// Debug
+		// var c = new createjs.Shape();
+		// c.graphics.setStrokeStyle(2);
+		// c.graphics.beginStroke('red');
+		// c.graphics.moveTo(ray.a.x,ray.a.y).lineTo(ray.b.x,ray.b.y);
+		// stage.addChild(c);
+		// Find CLOSEST intersection
+		var closestIntersect = null;
+		for(var i=0;i<segments.length;i++){
+			var intersect = getIntersection(ray,segments[i]);
+			if(!intersect) continue;
+			if(!closestIntersect || intersect.param<closestIntersect.param){
+				closestIntersect=intersect;
+			}
+		}
+		var intersect = closestIntersect;
+		return intersect;
+	}
+
 	Unit.prototype.getNearestTarget = function()
 	{
 		var mindist = 9999;
@@ -125,12 +157,25 @@
 				var distance = getDistance(this.position,units[i].position);
 				if(distance <= this.attributes.range)
 				{
-					if(distance < mindist){
-						lunits = [units[i]];
-						mindist = distance;
-					}else if(distance == mindist)
+					var intersection = this.castRay({x:units[i].x,y:units[i].y});
+					if(intersection != null)
 					{
-						lunits.push(units[i]);
+						// Debug
+						// var c = new createjs.Shape();
+						// c.graphics.beginFill('red').drawCircle(0, 0, 4);
+						// c.x = intersection.x;
+						// c.y = intersection.y;
+						// stage.addChild(c);
+					}
+					if(intersection == null)
+					{
+						if(distance < mindist){
+							lunits = [units[i]];
+							mindist = distance;
+						}else if(distance == mindist)
+						{
+							lunits.push(units[i]);
+						}
 					}
 				}
 			}

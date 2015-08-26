@@ -45,7 +45,10 @@ function relativeToGlobal(pos,reg)
 // Ajouter une méthode pour récupérer tous les segments des murs (à partir de umap, ça sera plus simple)
 // Attention, umap est en y,x
 function getWallSegments(map){
-  var segments = [];
+  if(segments.length > 0)
+    return segments;
+  
+  segments = [];
   for (var i = 0; i < map.length; i++) {
     for (var j = 0; j < map[i].length; j++) {
       if(!map[i][j]){

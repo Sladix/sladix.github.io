@@ -12,6 +12,7 @@ var stage,
     umap = [],
     mapSize = {},
     obstaclesMap = [],
+    segments = [],
     ui = null,
     currentLevel = 0;
     finder = new PF.AStarFinder({
@@ -156,7 +157,7 @@ function changeLevel(level)
 
   var levelName = levels[level];
 
-  units = [],tiles = [];
+  units = [],tiles = [],segments = [];
   stage.removeAllChildren();
   ui.initialize();
 

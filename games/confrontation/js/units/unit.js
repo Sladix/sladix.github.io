@@ -107,6 +107,7 @@
 		this.x = this.position.x * blocksize + mapOffsetX + this.regX;
 		this.y = this.position.y * blocksize + mapOffsetY + this.regY;
 		this.currentOrder = 0;
+		this.currentWaitTime = null;
 		this.stayed = 0;
 		this.alpha = 1;
 		this.alive = true;
@@ -190,16 +191,24 @@
 			return null;
 	}
 
-	Unit.prototype.fireAt = function(unit){
+	Unit.prototype.fireAt = function(unit,callback){
 		//Soucis ici...
 		var angle = Math.floor(getAngle({x:this.x,y:this.y},{x:unit.x,y:unit.y}));
 		var instance = this;
+		var brotation = this.rotation;
+		//On se tourne pour tirer
 		createjs.Tween.get(this).to({rotation:angle+instance.correctif},100).call(function(){
+			//On tire
 			var b = new createjs.Shape();
 			b.graphics.beginFill('#EAE413').drawCircle(0, 0, 4);
 			b.x = instance.x;
 			b.y = instance.y;
 			stage.addChild(b);
+			//On se retourne comme avant le tir
+			createjs.Tween.get(this).to({rotation:brotation},100).call(function(){
+				this.moveOrWait();
+			});
+
 			createjs.Tween.get(b).to({x:unit.x,y:unit.y},(turnTime/instance.attributes.speed) / 2).call(function(){
 				stage.removeChild(b);
 				unit.currentLife-= instance.attributes.damage;
@@ -208,7 +217,7 @@
 					unit.alive = false;
 					createjs.Tween.get(unit).to({alpha:0},turnTime/2);
 				}
-			})
+			});
 		});
 
 	}
@@ -248,8 +257,13 @@
 		if(n != null)
 		{
 			this.fireAt(n);
+		}else{
+			this.moveOrWait();	
 		}
+		
+	}
 
+	Unit.prototype.moveOrWait = function(){
 		if(this.currentOrder == this.orders.length)
 			return 1;
 		// Si on peut pas bouger, on attend
@@ -259,7 +273,8 @@
 		// Refaire cette partie là..
 		if(order.type == 'wait' && this.currentWaitTime == null)
 		{
-				this.currentWaitTime = order.waitTime;
+			this.move(order.position);
+			this.currentWaitTime = order.waitTime;
 		}
 
 		if(this.currentWaitTime > 0)

@@ -3,7 +3,7 @@ L'histoire commence à Nantes, le 27 septembre 2017 lors d'une soirée autour du
 
 Dès mon arrivé, étant seul, je me suis posé près d'une table. C'est là que j'ai croisé le regard d'une dame que nous appellerons **La marchande de rêves** qui, souriante, et après s'être intéressée à mon activité, mon parcours et mes ambitions s'est empressée de me fixer un RDV en me donnant sa carte. Le contenu et le but du RDV sont très vagues, il s'agirait d'une opportunité pour placer son argent, d'un **financement alternatif dans le domaine de la santé**.
 
-Le poste actuel (au moment ou j'écris cet article) de cette dame est "Development Partnerships - Direction of Corporate Relations and Alumni". Le RDV est donc fixé au lundi suivant.
+Le poste actuel (au moment ou j'écris cet article) de cette dame est "Development Partnerships - Direction of Corporate Relations and Alumni" dans une Ecole supérieure de commerce bien connue. Le RDV est donc fixé au lundi suivant.
 
 ## Technique d'approche
 - La technique dont j'ai été la cible est le street marketing
@@ -15,12 +15,11 @@ Le poste actuel (au moment ou j'écris cet article) de cette dame est "Developme
 
 ## Le ferrage
 C'est la partie critique et probablement la seule valeur ajoutée de ce type d'activité.
-### Trouver la stratégie de conquête (Client, Partenaire, les deux ?)
 
 Dans mon cas, ayant été rencontré dans une soirée entrepreneurial, elle a vite compris que le produit en lui même ne m'intéressait pas, qu'importe, l'axe principal a donc été de me faire devenir distributeur. Voici ce que j'ai pu observé :
 - Adapter le **champ lexical**  et **l'angle d'attaque** à l'interlocuteur
 	- Venant d'un milieu informatique, elle a insisté sur le concept de PNL (Programmation Neuro-Linguistique) sans rentrer trop dans les détails mais pas l'usage qu'elle en fait.
-- Mettre l'accent sur la crédibilité des membres du réseau (On doit **édifier** son parrain et devenir le lien de confiance avec son futur partenaire)
+- Mettre l'accent sur la crédibilité des membres du réseau (On doit **édifier** son parrain et devenir le lien de confiance avec son futur distributeur)
 - ~~Mentir~~ **Proposer des faits alternatifs** pour se rapprocher du prospect
 	- J'ai exprimé mes réticences par rapport à l'implication de ma compagne, quelques secondes plus tard dans la discussion, son "copain" réagissait exactement comme l'aurait fait ma compagne. Et elle avait les arguments pour me rassurer.
 	- Dès le début, elle m'a dit qu'elle avait injecté 600€ depuis juillet, hors sur le site societe.com, cette date correspond à la mise à jour de l'activité, sa création remontant à janvier.
@@ -35,7 +34,7 @@ Une fois que le concept est installé, pas le temps de demander ce qu'on en pens
 Pourquoi parler en devise alors qu'on peut parler simultanément en QV, 
 
 ## Le Closing
-C'est la partie qui correspond à la finalisation du recrutement d'un partenaire, à ce moment là, **La marchande de rêves** a clairement réussi son coup en me mettant dans un état de **confiance** et d'**euphorie**
+C'est la partie qui correspond à la finalisation du recrutement d'un distributeur, à ce moment là, **La marchande de rêves** a clairement réussi son coup en me mettant dans un état de **confiance** et d'**euphorie** menant à une forte volonté d'achat.
 Puis rapidement, elle me place dans une "équipe" au niveau "n" sous elle, m'assurant qu'avec cette affaire, je vais non seulement pouvoir générer du revenu résiduel mais aussi étendre mon réseau professionnel dans ma branche d'origine.
 > On a un développeur de chez Blablacar dans notre réseau, un autre qui vient de chez Canal Plus
 
@@ -57,20 +56,23 @@ La maison mère, la racine de la boîte propose un produit ( en l'occurrence, un
 
 - A-t-il le potentiel de recruter d'autres filleuls ?
 - Est-il intéressé par le(s) produit(s) ? (Pour qu'il devienne client)
-- Pourrait-il être Client ET Partenaire ? (Le type de profil qui rapporte le plus)
+- Pourrait-il être Client ET Distributeur ? (Le type de profil qui rapporte le plus)
 
 ## La suite logique
 De ce que j'ai pu comprendre et voir au travers des documents circulants sur cette plateforme, voici comment ça se serait passé si j'avais décidé de continuer mon activité :
-Une fois les premiers partenaires enrôlés, il faut maintenant qu'ils soient productifs !
+Une fois les premiers distributeurs enrôlés, il faut maintenant qu'ils soient productifs !
 De multiples stratagèmes se mettent alors en place autour du fameux 
 C'est là que je suis tombé sur cet article:
 
 ## Ce qui m'a fortement déplu
 Dans cette affaire, rien d'illégal, que du tendencieux et une excellente maîtrise du langage, de la modélisation du prospect (moi) et des leviers émotionnels qu'il faut déclancher.
 
-A aucun mooment on ne ma clairement expliqué la nature de l'activité à savoir :
+A aucun moment du RDV on ne parle concrétement de l'investissement personnel requis pour générer du bénéfice.
+
+A aucun moment on ne ma clairement expliqué la nature de l'activité à savoir :
 - La Prospection
-- L'enculade
+- La formation des équipiers (qui est un business à part entière sur lequel compte **La marchande de rêves**)
+- L'apprentissage de la PNL à des fins de manipulation ( c'est bien comme ça que je le considère ) émotionnels
 
 ## Les zones d'ombre
 
@@ -95,3 +97,7 @@ Pourquoi ?
 
 Simplement parce que c'est pas rentable pour **La marchande de rêves**, le plus rentable pour elle étant de faire signer des nouveaux adhérents dans une sous branche de son équipe.
 Avec son "starter pack", le nouvel équipier génère 600€ de CA et est en général ajouté avec 100€ d'Autoship par mois.
+
+## Conclusion
+
+Cette erreur a été pour moi très constructive, elle m'a permis à mes dépends d'observer de près les techniques que je considère agressives pour recruter des distributeurs.

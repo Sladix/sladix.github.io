@@ -31,7 +31,7 @@ Dans mon cas, ayant été rencontré dans une soirée entrepreneurial, elle a vi
 Mais ça ne s'arrête pas là.
 
 Une fois que le concept est installé, pas le temps de demander ce qu'on en pense, on passe directement au **plan de compensation**, et là, avalanche de termes métiers inventés pour obscursir l'activité.
-Pourquoi parler en devise alors qu'on peut parler simultanément en QV, 
+Pourquoi parler en devise alors qu'on peut parler simultanément en QV, CV, KV
 
 ## Le Closing
 C'est la partie qui correspond à la finalisation du recrutement d'un distributeur, à ce moment là, **La marchande de rêves** a clairement réussi son coup en me mettant dans un état de **confiance** et d'**euphorie** menant à une forte volonté d'achat.

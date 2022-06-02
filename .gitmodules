@@ -1,0 +1,3 @@
+[submodule "paperjs"]
+	path = apps/hatches
+	url = https://github.com/Sladix/paperjs.git

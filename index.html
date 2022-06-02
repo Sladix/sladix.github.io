@@ -1,44 +1,149 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<title>Sladix's realm</title>
-	<meta charset="UTF-8">
-	<link href='http://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
-</head>
-<style type="text/css">
-body{
-	font-family: Arial,sans-serif;
-	text-align: center;
-}
-h1
-{
-	font-size: 4rem;
-}
-span.pac{
-	font-family: 'Pacifico',cursive;
-}
-a
-{
-	color: #FF7400;
-}
-</style>
-<body>
-	<h1>Bienvenue / Welcome</h1>
-	<p>Un lieu étrange perdu dans les Internets / A weird place lost in the Internets</p>
-	<div class="project-container">
-		<a href="/games/dick">Be a dick</a>
-		<a href="/experiments/population">Agent Simulation</a>
-		<a href="/apps/hackernews">Angular HN Reader</a>
-	</div>
-	<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  <head>
+    <title>Sladix's realm</title>
+    <meta charset="UTF-8" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Responsive navbar-->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container px-lg-5">
+        <a class="navbar-brand" href="#!">Sladix</a>
+      </div>
+    </nav>
+    <!-- Header-->
+    <header class="py-5">
+      <div class="container px-lg-5">
+        <div class="p-4 p-lg-5 bg-light rounded-3 text-center">
+          <div class="m-4 m-lg-5">
+            <h1 class="display-5 fw-bold">Welcome to my place</h1>
+            <p class="fs-4">
+              Find out about my latest generative art and creative coding
+              projects
+            </p>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- Page Content-->
+    <section class="pt-4">
+      <div class="container px-lg-5">
+        <!-- Page Features-->
+        <div class="row gx-lg-5">
+          <div class="col-lg-6 col-xxl-4 mb-5">
+            <div class="card bg-light border-0 h-100">
+              <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                <div
+                  class="feature bg-primary bg-gradient text-white rounded-3 mb-4 mt-n4"
+                >
+                  <i class="bi bi-cloud-download"></i>
+                </div>
+                <h2 class="fs-4 fw-bold">Hatches</h2>
+                <p class="mb-0">
+                  An experiment with PaperJs
+                </p>
+				<a
+                  class="btn btn-primary btn-lg mt-2"
+                  href="/apps/hatches"
+                  >Launch</a
+                >
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 col-xxl-4 mb-5">
+            <div class="card bg-light border-0 h-100">
+              <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                <div
+                  class="feature bg-primary bg-gradient text-white rounded-3 mb-4 mt-n4"
+                >
+                  <i class="bi bi-collection"></i>
+                </div>
+                <h2 class="fs-4 fw-bold">Population experiment</h2>
+                <p class="mb-0">Using decision trees for the first time</p>
+                <a
+                  class="btn btn-primary btn-lg mt-2"
+                  href="/experiments/population"
+                  >Launch</a
+                >
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6 col-xxl-4 mb-5">
+            <div class="card bg-light border-0 h-100">
+              <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                <div
+                  class="feature bg-primary bg-gradient text-white rounded-3 mb-4 mt-n4"
+                >
+                  <i class="bi bi-card-heading"></i>
+                </div>
+                <h2 class="fs-4 fw-bold">Hacker news reader</h2>
+                <p class="mb-0">
+                  A HN reader I made a while ago using angular
+                </p>
+				<a
+                  class="btn btn-primary btn-lg mt-2"
+                  href="/apps/hackernews"
+                  >Launch</a
+                >
+              </div>
+            </div>
+          </div>
+		  <div class="col-lg-6 col-xxl-4 mb-5">
+            <div class="card bg-light border-0 h-100">
+              <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                <div
+                  class="feature bg-primary bg-gradient text-white rounded-3 mb-4 mt-n4"
+                >
+                  <i class="bi bi-card-heading"></i>
+                </div>
+                <h2 class="fs-4 fw-bold">NSFW Game</h2>
+                <p class="mb-0">
+                  Ahhh, the NSFW game, I made it in vanilla js. Not the best but it works.
+                </p>
+				<a
+                  class="btn btn-primary btn-lg mt-2"
+                  href="/games/dick/"
+                  >Launch</a
+                >
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Bootstrap core JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      (function (i, s, o, g, r, a, m) {
+        i["GoogleAnalyticsObject"] = r;
+        (i[r] =
+          i[r] ||
+          function () {
+            (i[r].q = i[r].q || []).push(arguments);
+          }),
+          (i[r].l = 1 * new Date());
+        (a = s.createElement(o)), (m = s.getElementsByTagName(o)[0]);
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m);
+      })(
+        window,
+        document,
+        "script",
+        "//www.google-analytics.com/analytics.js",
+        "ga"
+      );
 
-  ga('create', 'UA-60542866-2', 'auto');
-  ga('send', 'pageview');
-
-</script>
-</body>
+      ga("create", "UA-60542866-2", "auto");
+      ga("send", "pageview");
+    </script>
+  </body>
 </html>

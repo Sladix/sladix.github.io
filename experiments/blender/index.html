@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Image Gallery - JV Codes</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Barlow:400,500,700">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.12/css/all.css">
+
+</head>
+
+<body>
+    <nav>
+        <div class="container">
+            <div class="grid">
+                <div class="column-xs-12 column-md-10">
+                    <p id="highlight">At1 Lab</p>
+                </div>
+                <div class="column-xs-12 column-md-2">
+                    <ul>
+                        <li><a href="#" class="active">Blender</a></li>
+                        <li><a href="/">Home</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <section class="gallery">
+        <div class="container">
+            <div class="grid">
+                <div class="column-xs-12">
+                    <figure class="img-container">
+                        <img src="../../assets/images/tsd.jpg" />
+                        <figcaption class="img-content">
+                            <h2 class="title">TSD Hero</h2>
+                            <h3 class="category">Flat</h3>
+                        </figcaption>
+                        <span class="img-content-hover">
+                            <h2 class="title">TSD Hero</h2>
+                            <h3 class="category">Flat</h3>
+                        </span>
+                        <div class="details">Inspired by the hassle that is TSD management.</div>
+                    </figure>
+                </div>
+                <div class="column-xs-12 column-md-4">
+                    <figure class="img-container">
+                        <img src="../../assets/images/eheh.jpg" />
+                        <figcaption class="img-content">
+                            <h2 class="title">Blood sea</h2>
+                            <h3 class="category">Brutalism</h3>
+                        </figcaption>
+                        <span class="img-content-hover">
+                            <h2 class="title">Blood sea</h2>
+                            <h3 class="category">Brutalism</h3>
+                        </span>
+                        <div class="details"></div>
+                    </figure>
+                </div>
+                <div class="column-xs-12 column-md-8">
+                    <figure class="img-container">
+                        <img src="../../assets/images/maisons.png">
+                        <figcaption class="img-content">
+                            <h2 class="title">Houses</h2>
+                            <h3 class="category">Brutalism</h3>
+                        </figcaption>
+                        <span class="img-content-hover">
+                            <h2 class="title">Houses</h2>
+                            <h3 class="category">Brutalism</h3>
+                        </span>
+                        <div class="details"></div>
+                    </figure>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div id="zoomBox"></div>
+    <footer>
+        <div class="container">
+            <div class="grid">
+                <div class="column-xs-12">
+                    <ul class="social">
+                        <li><a href="https://twitter.com/at1lab" target="_blank" rel="noopener noreferrer"><span
+                                    class="fab fa-twitter"></span></a></li>
+                        <li><a href="https://codepen.io/sladix" target="_blank" rel="noopener noreferrer"><span
+                                    class="fab fa-codepen"></span></a></li>
+                        <li><a href="https://instagram.com/at1lab" target="_blank" rel="noopener noreferrer"><span
+                                    class="fab fa-instagram"></span></a></li>
+                    </ul>
+                    <p class="copyright">At1 Lab - 2025</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script>
+        const imgContent = document.querySelectorAll('.img-content-hover');
+
+        function showImgContent(e) {
+            for (var i = 0; i < imgContent.length; i++) {
+                x = e.pageX;
+                y = e.pageY;
+                imgContent[i].style.transform = `translate3d(${x}px, ${y}px, 0)`;
+            }
+        };
+
+        function closeZoom() {
+            document.getElementById('zoomBox').style.display = 'none';
+        }
+
+        document.addEventListener('mousemove', showImgContent);
+        document.querySelectorAll('.img-container').forEach((el) => {
+            console.log(el)
+            el.addEventListener('click', () => {
+                const img = el.querySelector('img').src;
+                const title = el.querySelector('.title').textContent;
+                const category = el.querySelector('.category').textContent;
+                const details = el.querySelector('.details').textContent;
+                const zoomBox = document.getElementById('zoomBox');
+                zoomBox.innerHTML = `
+                <div class="zoomBox-content">
+                    <img src="${img}" />
+                    <div class="text">
+                        <h2>${title}</h2>
+                        <h3>${category}</h3>
+                        <p class="details">${details}</p>
+                        <a href="#" onClick="closeZoom()" class="close">Close</a>
+                    </div>
+                </div>
+                `;
+                zoomBox.style.display = 'block';
+            });
+            
+        });
+    </script>
+</body>
+
+</html>

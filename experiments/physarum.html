@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GPGPU Physarum Cluster</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-17RMJZSWND"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-17RMJZSWND');
+    </script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', Courier, monospace; }
+        canvas { display: block; width: 100vw; height: 100vh; cursor: crosshair; }
+        #ui {
+            position: absolute; top: 10px; left: 10px; color: #0f0;
+            background: rgba(0, 0, 0, 0.85); padding: 15px; border: 1px solid #0f0;
+            pointer-events: auto; z-index: 10; font-size: 11px;
+            backdrop-filter: blur(4px);
+            width: 260px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        .param { margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .param-controls { display: flex; align-items: center; gap: 4px; }
+        input[type=range] { width: 70px; accent-color: #0f0; cursor: pointer; }
+        input[type=number] { width: 50px; background: #000; color: #0f0; border: 1px solid #333; padding: 2px 4px; font-size: 10px; font-family: inherit; }
+        input[type=number]:focus { border-color: #0f0; outline: none; }
+        select { background:#000; color:#0f0; border:1px solid #0f0; font-size: 11px; cursor: pointer; }
+        h1 { margin: 0 0 8px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #0f0; padding-bottom: 5px; }
+        h2 { margin: 10px 0 6px 0; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        #stats { color: #fff; font-weight: bold; margin-bottom: 8px; font-size: 10px; }
+        .hint { font-size: 9px; color: #666; margin-top: 8px; line-height: 1.4; }
+        .btn-row { display: flex; gap: 4px; flex-wrap: wrap; margin: 6px 0; }
+        .btn {
+            background: #000; color: #0f0; border: 1px solid #0f0;
+            padding: 4px 8px; cursor: pointer; font-size: 10px;
+            font-family: inherit; transition: all 0.15s;
+        }
+        .btn:hover { background: #0f0; color: #000; }
+        .btn.active { background: #0f0; color: #000; }
+        .btn.danger { border-color: #f00; color: #f00; }
+        .btn.danger:hover { background: #f00; color: #000; }
+        .section { border-top: 1px solid #333; padding-top: 8px; margin-top: 8px; }
+        #ui::-webkit-scrollbar { width: 4px; }
+        #ui::-webkit-scrollbar-thumb { background: #0f0; }
+        #ui.minimized { width: auto; padding: 8px 12px; }
+        #ui.minimized .ui-content { display: none; }
+        #ui.minimized h1 { margin: 0; border: none; padding: 0; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; }
+        #toggleBtn {
+            background: none; border: none; color: #0f0;
+            cursor: pointer; font-size: 14px; padding: 0 4px;
+            font-family: inherit;
+        }
+        #toggleBtn:hover { color: #fff; }
+        #ui::-webkit-scrollbar-track { background: #111; }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <div class="header-row">
+        <h1>PHYSARUM // GPGPU</h1>
+        <button id="toggleBtn" onclick="toggleUI()" title="Toggle panel (H)">−</button>
+    </div>
+    <div class="ui-content">
+    <div id="stats">FPS: 0 | AGENTS: 1M</div>
+
+    <h2>Presets</h2>
+    <div class="btn-row">
+        <button class="btn" onclick="applyPreset('classic')">Classic</button>
+        <button class="btn" onclick="applyPreset('veins')">Veins</button>
+        <button class="btn" onclick="applyPreset('maze')">Maze</button>
+        <button class="btn" onclick="applyPreset('explosion')">Explosion</button>
+        <button class="btn" onclick="applyPreset('spiral')">Spiral</button>
+        <button class="btn" onclick="applyPreset('coral')">Coral</button>
+        <button class="btn" onclick="applyPreset('electric')">Electric</button>
+        <button class="btn" onclick="applyPreset('lava')">Lava</button>
+    </div>
+
+    <h2>Behavior</h2>
+    <div class="param">
+        <label>Sensor Angle</label>
+        <div class="param-controls">
+            <input type="range" id="sensorAngle" min="0" max="1.57" step="0.01" value="0.45">
+            <input type="number" id="sensorAngleNum" min="0" max="1.57" step="0.01" value="0.45">
+        </div>
+    </div>
+    <div class="param">
+        <label>Sensor Dist</label>
+        <div class="param-controls">
+            <input type="range" id="sensorDist" min="1" max="100" step="1" value="35">
+            <input type="number" id="sensorDistNum" min="1" max="100" step="1" value="35">
+        </div>
+    </div>
+    <div class="param">
+        <label>Turn Speed</label>
+        <div class="param-controls">
+            <input type="range" id="turnSpeed" min="0.1" max="20" step="0.1" value="4.0">
+            <input type="number" id="turnSpeedNum" min="0.1" max="20" step="0.1" value="4.0">
+        </div>
+    </div>
+    <div class="param">
+        <label>Move Speed</label>
+        <div class="param-controls">
+            <input type="range" id="moveSpeed" min="10" max="500" step="10" value="180">
+            <input type="number" id="moveSpeedNum" min="10" max="500" step="10" value="180">
+        </div>
+    </div>
+
+    <h2>Species Interaction</h2>
+    <div class="param">
+        <label>Own Species</label>
+        <div class="param-controls">
+            <input type="range" id="ownAttraction" min="-2" max="2" step="0.1" value="1.0">
+            <input type="number" id="ownAttractionNum" min="-2" max="2" step="0.1" value="1.0">
+        </div>
+    </div>
+    <div class="param">
+        <label>Other Species</label>
+        <div class="param-controls">
+            <input type="range" id="otherAttraction" min="-2" max="2" step="0.1" value="0.5">
+            <input type="number" id="otherAttractionNum" min="-2" max="2" step="0.1" value="0.5">
+        </div>
+    </div>
+    <div class="param">
+        <label>Interaction Mode</label>
+        <select id="interactionMode">
+            <option value="simple">Simple</option>
+            <option value="cooperative">Cooperative</option>
+            <option value="territorial">Territorial</option>
+            <option value="predator">Predator-Prey</option>
+        </select>
+    </div>
+
+    <h2>Trail Dynamics</h2>
+    <div class="param">
+        <label>Deposit</label>
+        <div class="param-controls">
+            <input type="range" id="deposit" min="0.01" max="1.0" step="0.01" value="0.25">
+            <input type="number" id="depositNum" min="0.01" max="1.0" step="0.01" value="0.25">
+        </div>
+    </div>
+    <div class="param">
+        <label>Evaporate</label>
+        <div class="param-controls">
+            <input type="range" id="decay" min="0" max="0.1" step="0.001" value="0.01">
+            <input type="number" id="decayNum" min="0" max="0.1" step="0.001" value="0.01">
+        </div>
+    </div>
+    <div class="param">
+        <label>Diffuse</label>
+        <div class="param-controls">
+            <input type="range" id="diffuse" min="0" max="1" step="0.01" value="0.92">
+            <input type="number" id="diffuseNum" min="0" max="1" step="0.01" value="0.92">
+        </div>
+    </div>
+    <div class="param">
+        <label>Trail Cap</label>
+        <div class="param-controls">
+            <input type="range" id="trailCap" min="1" max="20" step="0.5" value="5">
+            <input type="number" id="trailCapNum" min="1" max="20" step="0.5" value="5">
+        </div>
+    </div>
+
+    <h2>Brush (Click Canvas)</h2>
+    <div class="btn-row">
+        <button class="btn active" id="brushCircle" onclick="setBrush('circle')">Circle</button>
+        <button class="btn" id="brushSquare" onclick="setBrush('square')">Square</button>
+        <button class="btn" id="brushSpray" onclick="setBrush('spray')">Spray</button>
+        <button class="btn" id="brushRing" onclick="setBrush('ring')">Ring</button>
+        <button class="btn danger" id="brushErase" onclick="setBrush('erase')">Erase</button>
+    </div>
+    <div class="param">
+        <label>Brush Size</label>
+        <div class="param-controls">
+            <input type="range" id="brushSize" min="5" max="200" step="5" value="50">
+            <input type="number" id="brushSizeNum" min="5" max="200" step="5" value="50">
+        </div>
+    </div>
+    <div class="param">
+        <label>Brush Strength</label>
+        <div class="param-controls">
+            <input type="range" id="brushStrength" min="0.1" max="2" step="0.1" value="0.5">
+            <input type="number" id="brushStrengthNum" min="0.1" max="2" step="0.1" value="0.5">
+        </div>
+    </div>
+
+    <h2>Spawn Pattern</h2>
+    <div class="btn-row">
+        <button class="btn active" id="spawnRandom" onclick="setSpawnMode('random')">Random</button>
+        <button class="btn" id="spawnCenter" onclick="setSpawnMode('center')">Center</button>
+        <button class="btn" id="spawnRing" onclick="setSpawnMode('ring')">Ring</button>
+        <button class="btn" id="spawnGrid" onclick="setSpawnMode('grid')">Grid</button>
+        <button class="btn" id="spawnSpiral" onclick="setSpawnMode('spiral')">Spiral</button>
+    </div>
+
+    <h2>Visuals</h2>
+    <div class="param">
+        <label>Color Palette</label>
+        <select id="palette">
+            <option value="0">Ocean Depths</option>
+            <option value="1">Ember</option>
+            <option value="2">Aurora</option>
+            <option value="3">Forest</option>
+            <option value="4">Plasma</option>
+            <option value="5">Sunset</option>
+            <option value="6">Monochrome</option>
+            <option value="7">Toxic</option>
+            <option value="8">Ice</option>
+            <option value="9">Copper</option>
+        </select>
+    </div>
+    <div class="param">
+        <label>Brightness</label>
+        <div class="param-controls">
+            <input type="range" id="brightness" min="0.5" max="3" step="0.1" value="1.0">
+            <input type="number" id="brightnessNum" min="0.5" max="3" step="0.1" value="1.0">
+        </div>
+    </div>
+    <div class="param">
+        <label>Contrast</label>
+        <div class="param-controls">
+            <input type="range" id="contrast" min="0" max="1" step="0.05" value="0.7">
+            <input type="number" id="contrastNum" min="0" max="1" step="0.05" value="0.7">
+        </div>
+    </div>
+    <div class="param">
+        <label>Show Agents</label>
+        <select id="showAgents">
+            <option value="off">Off</option>
+            <option value="dots">Dots</option>
+            <option value="glow">Glow</option>
+            <option value="additive">Additive</option>
+            <option value="soft">Soft Blend</option>
+            <option value="sparks">Sparks</option>
+        </select>
+    </div>
+
+    <div class="section">
+        <div class="param">
+            <label>Agent Count</label>
+            <select id="agentCountSelect">
+                <option value="10000">10k</option>
+                <option value="50000">50k</option>
+                <option value="100000">100k</option>
+                <option value="250000">250k</option>
+                <option value="500000">500k</option>
+                <option value="1000000" selected>1M</option>
+                <option value="2000000">2M</option>
+                <option value="4000000">4M</option>
+            </select>
+        </div>
+        <div class="param">
+            <label>Sim Speed</label>
+            <input type="range" id="simSpeed" min="0.1" max="3" step="0.1" value="1.0">
+        </div>
+    </div>
+
+    <h2>Actions</h2>
+    <div class="btn-row">
+        <button class="btn" onclick="resetAgents()">Respawn</button>
+        <button class="btn danger" onclick="wipeCanvas()">Wipe</button>
+        <button class="btn" id="pauseBtn" onclick="togglePause()">Pause</button>
+        <button class="btn" onclick="screenshot()">Screenshot</button>
+        <button class="btn" onclick="randomize()">Randomize</button>
+    </div>
+
+    <div class="hint">
+        CLICK+DRAG: Paint deposits<br>
+        SPACE: Pause/Resume | H: Hide panel<br>
+        R: Reset | W: Wipe | S: Screenshot<br>
+        1-8: Quick presets
+    </div>
+    </div>
+</div>
+
+<canvas id="glcanvas"></canvas>
+
+<!-- SHADER: UPDATE AGENTS (VERTEX SHADER) -->
+<script id="vs-update" type="x-shader/x-vertex">#version 300 es
+precision highp float;
+
+layout(location = 0) in vec2 a_position;
+layout(location = 1) in float a_angle;
+layout(location = 2) in float a_species;
+layout(location = 3) in float a_id;
+
+out vec2 v_position;
+out float v_angle;
+out float v_species;
+
+uniform sampler2D u_trailMap;
+uniform vec2 u_resolution;
+uniform float u_time;
+uniform float u_dt;
+
+uniform float u_sensorAngle;
+uniform float u_sensorDist;
+uniform float u_turnSpeed;
+uniform float u_moveSpeed;
+uniform float u_ownAttraction;
+uniform float u_otherAttraction;
+
+float hash(vec2 xy) {
+    return fract(tan(distance(xy * 1.61803398874989484820459, xy) * 123.456) * 12345.678);
+}
+
+float sense(vec2 pos, float angle, float dist, float mySpecies) {
+    vec2 sensorDir = vec2(cos(angle), sin(angle));
+    vec2 sensorPos = pos + sensorDir * dist;
+    vec2 uv = sensorPos / u_resolution;
+
+    if(uv.x < 0.0) uv.x += 1.0;
+    if(uv.x > 1.0) uv.x -= 1.0;
+    if(uv.y < 0.0) uv.y += 1.0;
+    if(uv.y > 1.0) uv.y -= 1.0;
+
+    vec4 sampled = texture(u_trailMap, uv);
+
+    // Base density contribution
+    float total = sampled.r * 0.3;
+
+    // Species channels: G=sp0, B=sp1, A=sp2
+    int myIdx = int(floor(mySpecies));
+    float sp0 = sampled.g;
+    float sp1 = sampled.b;
+    float sp2 = sampled.a;
+
+    // Apply attraction weights based on own vs other species
+    if (myIdx == 0) {
+        total += sp0 * u_ownAttraction;
+        total += (sp1 + sp2) * u_otherAttraction;
+    } else if (myIdx == 1) {
+        total += sp1 * u_ownAttraction;
+        total += (sp0 + sp2) * u_otherAttraction;
+    } else {
+        total += sp2 * u_ownAttraction;
+        total += (sp0 + sp1) * u_otherAttraction;
+    }
+
+    return total;
+}
+
+void main() {
+    float angle = a_angle;
+    vec2 pos = a_position;
+
+    // Validate input from previous frame - reset if corrupted
+    if (isnan(pos.x) || isnan(pos.y) || isnan(angle) ||
+        isinf(pos.x) || isinf(pos.y) || isinf(angle)) {
+        float rnd1 = hash(vec2(a_id, u_time * 0.1));
+        float rnd2 = hash(vec2(a_id + 50.0, u_time * 0.1));
+        pos = vec2(rnd1, rnd2) * u_resolution;
+        angle = hash(vec2(a_id + 100.0, u_time * 0.1)) * 6.28318;
+    }
+
+    float sAngle = u_sensorAngle * (1.0 + a_species * 0.15);
+    float sDist = u_sensorDist * (1.0 + a_species * 0.1);
+    float tSpeed = u_turnSpeed * (1.0 + a_species * 0.1);
+
+    float rand = hash(vec2(a_id * 0.013, u_time * 0.1));
+
+    // 1. SENSORY STAGE (species-aware)
+    float wL = sense(pos, angle + sAngle, sDist, a_species);
+    float wC = sense(pos, angle, sDist, a_species);
+    float wR = sense(pos, angle - sAngle, sDist, a_species);
+
+    // 2. MOTOR STAGE
+    if (wC > wL && wC > wR) {
+        angle += (rand - 0.5) * 0.05 * tSpeed * u_dt;
+    } else if (wC < wL && wC < wR) {
+        angle += (rand - 0.5) * 2.0 * tSpeed * u_dt;
+    } else if (wR > wL) {
+        angle -= tSpeed * u_dt;
+    } else if (wL > wR) {
+        angle += tSpeed * u_dt;
+    } else {
+        angle += (rand - 0.5) * 1.0 * tSpeed * u_dt;
+    }
+
+    // 3. MOVEMENT STAGE
+    vec2 dir = vec2(cos(angle), sin(angle));
+    pos += dir * u_moveSpeed * u_dt;
+
+    // Wrap boundaries
+    if (pos.x < 0.0) pos.x += u_resolution.x;
+    if (pos.x > u_resolution.x) pos.x -= u_resolution.x;
+    if (pos.y < 0.0) pos.y += u_resolution.y;
+    if (pos.y > u_resolution.y) pos.y -= u_resolution.y;
+
+    // Keep angle in reasonable range to prevent precision loss
+    angle = mod(angle, 6.28318);
+
+    // Safety checks - detect invalid states early
+    bool needsReset = false;
+
+    // Check for NaN/Infinity in position
+    if (isnan(pos.x) || isnan(pos.y) || isinf(pos.x) || isinf(pos.y)) {
+        needsReset = true;
+    }
+
+    // Check for NaN/Infinity in angle
+    if (isnan(angle) || isinf(angle)) {
+        needsReset = true;
+    }
+
+    // Check for out-of-bounds (shouldn't happen but safety net)
+    if (pos.x < -1.0 || pos.x > u_resolution.x + 1.0 ||
+        pos.y < -1.0 || pos.y > u_resolution.y + 1.0) {
+        needsReset = true;
+    }
+
+    if (needsReset) {
+        // Reset to random position with new angle
+        float rnd1 = hash(vec2(a_id, u_time));
+        float rnd2 = hash(vec2(a_id + 100.0, u_time + 1.0));
+        pos = vec2(rnd1, rnd2) * u_resolution;
+        angle = hash(vec2(a_id + 200.0, u_time)) * 6.28318;
+    }
+
+    // Final clamp as absolute safety net
+    pos = clamp(pos, vec2(0.0), u_resolution);
+
+    v_position = pos;
+    v_angle = angle;
+    v_species = a_species;
+}
+</script>
+
+<script id="fs-dummy" type="x-shader/x-fragment">#version 300 es
+precision highp float;
+out vec4 fragColor;
+void main() { fragColor = vec4(1.0); }
+</script>
+
+<!-- SHADER: DRAW AGENTS -->
+<script id="vs-draw" type="x-shader/x-vertex">#version 300 es
+layout(location = 0) in vec2 a_position;
+layout(location = 2) in float a_species;  // Must match VAO: species is at location 2
+uniform vec2 u_resolution;
+uniform float u_pointSize;
+out float v_species;
+
+void main() {
+    v_species = a_species;
+    vec2 clipSpace = (a_position / u_resolution) * 2.0 - 1.0;
+    gl_Position = vec4(clipSpace, 0.0, 1.0);
+    gl_PointSize = u_pointSize;
+}
+</script>
+
+<script id="fs-draw" type="x-shader/x-fragment">#version 300 es
+precision highp float;
+in float v_species;
+uniform float u_deposit;
+out vec4 fragColor;
+
+void main() {
+    // Channel layout: R=density, G=species0, B=species1, A=species2
+    float density = u_deposit;
+    vec4 col = vec4(density, 0.0, 0.0, 0.0);
+
+    // Add species-specific deposit to appropriate channel
+    int sp = int(v_species + 0.5); // Round to nearest int
+    if (sp == 0) col.g = u_deposit;
+    else if (sp == 1) col.b = u_deposit;
+    else col.a = u_deposit;
+
+    fragColor = col;
+}
+</script>
+
+<!-- SHADER: BRUSH -->
+<script id="fs-brush" type="x-shader/x-fragment">#version 300 es
+precision highp float;
+uniform vec2 u_mouse;
+uniform vec2 u_resolution;
+uniform float u_brushSize;
+uniform float u_brushStrength;
+uniform int u_brushType; // 0=circle, 1=square, 2=spray, 3=ring, 4=erase
+uniform float u_time;
+out vec4 fragColor;
+
+float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+void main() {
+    vec2 uv = gl_FragCoord.xy;
+    vec2 diff = uv - u_mouse;
+    float dist = length(diff);
+    float strength = 0.0;
+
+    if (u_brushType == 4) { // Erase - outputs negative to subtract
+        strength = 1.0 - smoothstep(0.0, u_brushSize, dist);
+        strength *= u_brushStrength;
+        fragColor = vec4(-strength, -strength, -strength, -strength);
+        return;
+    }
+
+    if (u_brushType == 0) { // Circle - soft falloff
+        strength = 1.0 - smoothstep(0.0, u_brushSize, dist);
+    } else if (u_brushType == 1) { // Square
+        vec2 absDiff = abs(diff);
+        float maxDist = max(absDiff.x, absDiff.y);
+        strength = 1.0 - smoothstep(u_brushSize * 0.8, u_brushSize, maxDist);
+    } else if (u_brushType == 2) { // Spray - noisy particles
+        float noise = hash(uv + u_time);
+        float sprayDist = dist + noise * u_brushSize * 0.5;
+        strength = step(sprayDist, u_brushSize) * noise * 0.8;
+    } else if (u_brushType == 3) { // Ring
+        float ringDist = abs(dist - u_brushSize * 0.7);
+        strength = 1.0 - smoothstep(0.0, u_brushSize * 0.3, ringDist);
+    }
+
+    strength *= u_brushStrength;
+
+    // Multi-species deposit based on position
+    float species = hash(floor(uv * 0.1) + u_time * 0.01);
+    vec4 col = vec4(strength * 0.3, 0.0, 0.0, 0.0); // density in R
+    if (species < 0.33) col.g = strength;
+    else if (species < 0.66) col.b = strength;
+    else col.a = strength;
+
+    fragColor = col;
+}
+</script>
+
+<!-- SHADER: POST PROCESS -->
+<script id="vs-quad" type="x-shader/x-vertex">#version 300 es
+in vec2 a_position;
+out vec2 v_uv;
+void main() {
+    v_uv = a_position * 0.5 + 0.5;
+    gl_Position = vec4(a_position, 0.0, 1.0);
+}
+</script>
+
+<script id="fs-diffuse" type="x-shader/x-fragment">#version 300 es
+precision highp float;
+in vec2 v_uv;
+uniform sampler2D u_trailMap;
+uniform vec2 u_resolution;
+uniform float u_decay;
+uniform float u_diffuse;
+uniform float u_trailCap;
+out vec4 fragColor;
+
+void main() {
+    vec2 onePixel = 1.0 / u_resolution;
+
+    vec4 sum = vec4(0.0);
+    for(int x=-1; x<=1; x++) {
+        for(int y=-1; y<=1; y++) {
+            sum += texture(u_trailMap, v_uv + vec2(x, y) * onePixel);
+        }
+    }
+    vec4 avg = sum / 9.0;
+    vec4 original = texture(u_trailMap, v_uv);
+    vec4 diffused = mix(original, avg, u_diffuse);
+
+    // Decay with minimum threshold to prevent complete fadeout
+    vec4 val = diffused - u_decay;
+    val = max(val, vec4(0.0));
+    val = min(val, vec4(u_trailCap));
+
+    fragColor = val;
+}
+</script>
+
+<script id="fs-display" type="x-shader/x-fragment">#version 300 es
+precision highp float;
+in vec2 v_uv;
+uniform sampler2D u_trailMap;
+uniform int u_palette;
+uniform float u_brightness;
+uniform float u_contrast;
+out vec4 fragColor;
+
+vec3 hsv2rgb(vec3 c) {
+    vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+void main() {
+    vec4 map = texture(u_trailMap, v_uv);
+    vec3 col = vec3(0.0);
+
+    float density = map.r;
+    float sp1 = map.g;
+    float sp2 = map.b;
+    float sp3 = map.a;
+
+    if (u_palette == 0) { // Ocean Depths - cool oceanic tones
+        col += sp1 * vec3(0.0, 0.8, 0.7);   // Teal
+        col += sp2 * vec3(0.0, 0.6, 1.0);   // Azure
+        col += sp3 * vec3(0.3, 0.2, 0.8);   // Indigo
+        col += density * vec3(0.05, 0.1, 0.25); // Navy
+    } else if (u_palette == 1) { // Ember - warm fire tones
+        col += sp1 * vec3(0.9, 0.1, 0.15);  // Crimson
+        col += sp2 * vec3(1.0, 0.5, 0.0);   // Orange
+        col += sp3 * vec3(1.0, 0.85, 0.2);  // Gold
+        col += density * vec3(0.3, 0.15, 0.05); // Brown
+    } else if (u_palette == 2) { // Aurora - vibrant northern lights
+        col += sp1 * vec3(1.0, 0.0, 0.7);   // Magenta
+        col += sp2 * vec3(0.0, 1.0, 0.9);   // Cyan
+        col += sp3 * vec3(1.0, 1.0, 0.2);   // Yellow
+        col += density * vec3(0.3, 0.0, 0.5); // Purple
+    } else if (u_palette == 3) { // Forest - natural greens
+        col += sp1 * vec3(0.6, 1.0, 0.2);   // Lime
+        col += sp2 * vec3(0.1, 0.5, 0.2);   // Forest Green
+        col += sp3 * vec3(0.0, 0.7, 0.6);   // Teal
+        col += density * vec3(0.05, 0.15, 0.05); // Dark Green
+    } else if (u_palette == 4) { // Plasma - electric neon
+        col += sp1 * vec3(1.0, 0.1, 0.5);   // Hot Pink
+        col += sp2 * vec3(0.1, 0.5, 1.0);   // Electric Blue
+        col += sp3 * vec3(0.6, 0.2, 1.0);   // Violet
+        col += density * vec3(0.02, 0.0, 0.05); // Near Black
+    } else if (u_palette == 5) { // Sunset - warm gradient
+        col += sp1 * vec3(1.0, 0.45, 0.35); // Coral
+        col += sp2 * vec3(1.0, 0.4, 0.6);   // Rose
+        col += sp3 * vec3(0.6, 0.3, 0.8);   // Purple
+        col += density * vec3(0.5, 0.3, 0.1); // Amber
+    } else if (u_palette == 6) { // Monochrome - elegant grayscale
+        col += sp1 * vec3(1.0);             // White
+        col += sp2 * vec3(0.7);             // Gray 70%
+        col += sp3 * vec3(0.4);             // Gray 40%
+        col += density * vec3(0.1);         // Near Black
+    } else if (u_palette == 7) { // Toxic - radioactive
+        col += sp1 * vec3(0.7, 1.0, 0.0);   // Acid Green
+        col += sp2 * vec3(1.0, 0.0, 0.7);   // Magenta
+        col += sp3 * vec3(1.0, 1.0, 1.0);   // White
+        col += density * vec3(0.0, 0.05, 0.0); // Black-green
+    } else if (u_palette == 8) { // Ice - frozen crystalline
+        col += sp1 * vec3(0.0, 1.0, 1.0);   // Cyan
+        col += sp2 * vec3(0.95, 0.98, 1.0); // White
+        col += sp3 * vec3(0.7, 0.7, 1.0);   // Lavender
+        col += density * vec3(0.05, 0.1, 0.3); // Deep Blue
+    } else if (u_palette == 9) { // Copper - metallic warmth
+        col += sp1 * vec3(0.85, 0.5, 0.3);  // Copper
+        col += sp2 * vec3(0.7, 0.5, 0.25);  // Bronze
+        col += sp3 * vec3(0.3, 0.6, 0.6);   // Patina Teal
+        col += density * vec3(0.2, 0.1, 0.05); // Dark Brown
+    }
+
+    col *= u_brightness;
+
+    // Tone mapping
+    col = col / (col + vec3(1.0));
+
+    // Gamma
+    col = pow(col, vec3(1.0/2.2));
+
+    // Contrast
+    col = smoothstep(0.0, 1.0 - u_contrast * 0.3, col);
+
+    fragColor = vec4(col, 1.0);
+}
+</script>
+
+<!-- SHADER: AGENT OVERLAY -->
+<script id="vs-agents" type="x-shader/x-vertex">#version 300 es
+layout(location = 0) in vec2 a_position;
+layout(location = 2) in float a_species;  // Must match VAO: species is at location 2
+uniform vec2 u_resolution;
+uniform float u_pointSize;
+out float v_species;
+
+void main() {
+    v_species = a_species;
+    vec2 clipSpace = (a_position / u_resolution) * 2.0 - 1.0;
+    gl_Position = vec4(clipSpace, 0.0, 1.0);
+    gl_PointSize = u_pointSize;
+}
+</script>
+
+<script id="fs-agents" type="x-shader/x-fragment">#version 300 es
+precision highp float;
+in float v_species;
+uniform int u_mode; // 0=dots, 1=glow
+uniform int u_palette;
+out vec4 fragColor;
+
+vec3 getSpeciesColor(float species, int palette) {
+    // Colors matching fs-display palettes
+    if (palette == 0) { // Ocean Depths
+        if (species < 0.5) return vec3(0.0, 0.8, 0.7);   // Teal
+        else if (species < 1.5) return vec3(0.0, 0.6, 1.0); // Azure
+        else return vec3(0.3, 0.2, 0.8);                 // Indigo
+    } else if (palette == 1) { // Ember
+        if (species < 0.5) return vec3(0.9, 0.1, 0.15);  // Crimson
+        else if (species < 1.5) return vec3(1.0, 0.5, 0.0); // Orange
+        else return vec3(1.0, 0.85, 0.2);                // Gold
+    } else if (palette == 2) { // Aurora
+        if (species < 0.5) return vec3(1.0, 0.0, 0.7);   // Magenta
+        else if (species < 1.5) return vec3(0.0, 1.0, 0.9); // Cyan
+        else return vec3(1.0, 1.0, 0.2);                 // Yellow
+    } else if (palette == 3) { // Forest
+        if (species < 0.5) return vec3(0.6, 1.0, 0.2);   // Lime
+        else if (species < 1.5) return vec3(0.1, 0.5, 0.2); // Forest Green
+        else return vec3(0.0, 0.7, 0.6);                 // Teal
+    } else if (palette == 4) { // Plasma
+        if (species < 0.5) return vec3(1.0, 0.1, 0.5);   // Hot Pink
+        else if (species < 1.5) return vec3(0.1, 0.5, 1.0); // Electric Blue
+        else return vec3(0.6, 0.2, 1.0);                 // Violet
+    } else if (palette == 5) { // Sunset
+        if (species < 0.5) return vec3(1.0, 0.45, 0.35); // Coral
+        else if (species < 1.5) return vec3(1.0, 0.4, 0.6); // Rose
+        else return vec3(0.6, 0.3, 0.8);                 // Purple
+    } else if (palette == 6) { // Monochrome
+        if (species < 0.5) return vec3(1.0);             // White
+        else if (species < 1.5) return vec3(0.7);        // Gray 70%
+        else return vec3(0.4);                           // Gray 40%
+    } else if (palette == 7) { // Toxic
+        if (species < 0.5) return vec3(0.7, 1.0, 0.0);   // Acid Green
+        else if (species < 1.5) return vec3(1.0, 0.0, 0.7); // Magenta
+        else return vec3(1.0, 1.0, 1.0);                 // White
+    } else if (palette == 8) { // Ice
+        if (species < 0.5) return vec3(0.0, 1.0, 1.0);   // Cyan
+        else if (species < 1.5) return vec3(0.95, 0.98, 1.0); // White
+        else return vec3(0.7, 0.7, 1.0);                 // Lavender
+    } else { // Copper (palette == 9)
+        if (species < 0.5) return vec3(0.85, 0.5, 0.3);  // Copper
+        else if (species < 1.5) return vec3(0.7, 0.5, 0.25); // Bronze
+        else return vec3(0.3, 0.6, 0.6);                 // Patina Teal
+    }
+}
+
+void main() {
+    vec2 pc = gl_PointCoord - 0.5;
+    float dist = length(pc);
+
+    // Discard outside circle
+    if (dist > 0.5) discard;
+
+    vec3 col = getSpeciesColor(v_species, u_palette);
+    float alpha = 1.0;
+
+    if (u_mode == 0) { // Dots - solid with outline
+        if (dist > 0.35) col = vec3(1.0); // White outline
+    } else if (u_mode == 1) { // Glow
+        alpha = 1.0 - smoothstep(0.0, 0.5, dist);
+        col *= 1.5;
+    } else if (u_mode == 2) { // Additive - bright centers
+        float glow = 1.0 - smoothstep(0.0, 0.4, dist);
+        col *= glow * 2.0;
+        alpha = glow;
+    } else if (u_mode == 3) { // Soft Blend - subtle presence
+        alpha = (1.0 - smoothstep(0.1, 0.5, dist)) * 0.4;
+        col *= 0.8;
+    } else if (u_mode == 4) { // Sparks - tiny bright points
+        float spark = 1.0 - smoothstep(0.0, 0.15, dist);
+        col = mix(col, vec3(1.0), spark * 0.5);
+        alpha = spark;
+    }
+
+    fragColor = vec4(col, alpha);
+}
+</script>
+
+<script>
+const canvas = document.getElementById('glcanvas');
+const gl = canvas.getContext('webgl2', { powerPreference: 'high-performance', preserveDrawingBuffer: true });
+
+if (!gl) { alert("WebGL2 missing"); throw "No WebGL2"; }
+if (!gl.getExtension('EXT_color_buffer_float')) alert("Float textures not supported");
+
+let config = {
+    agentCount: 1000000,
+    sensorAngle: 0.45,
+    sensorDist: 35.0,
+    turnSpeed: 4.0,
+    moveSpeed: 180.0,
+    ownAttraction: 1.0,
+    otherAttraction: 0.5,
+    decay: 0.01,
+    diffuse: 0.92,
+    deposit: 0.25,
+    trailCap: 5.0,
+    brushType: 'circle',
+    brushSize: 50,
+    brushStrength: 0.5,
+    spawnMode: 'ring',
+    palette: 0,
+    brightness: 1.0,
+    contrast: 0.7,
+    showAgents: 'off',
+    simSpeed: 1.0
+};
+
+let paused = false;
+let mousePos = { x: 0, y: 0 };
+let isPainting = false;
+
+// Presets
+const presets = {
+    classic: { sensorAngle: 0.45, sensorDist: 35, turnSpeed: 4, moveSpeed: 180, decay: 0.01, diffuse: 0.92, deposit: 0.25 },
+    veins: { sensorAngle: 0.2, sensorDist: 50, turnSpeed: 2, moveSpeed: 100, decay: 0.005, diffuse: 0.98, deposit: 0.4 },
+    maze: { sensorAngle: 0.8, sensorDist: 15, turnSpeed: 8, moveSpeed: 150, decay: 0.02, diffuse: 0.85, deposit: 0.3 },
+    explosion: { sensorAngle: 1.2, sensorDist: 20, turnSpeed: 15, moveSpeed: 300, decay: 0.03, diffuse: 0.7, deposit: 0.15 },
+    spiral: { sensorAngle: 0.35, sensorDist: 60, turnSpeed: 3, moveSpeed: 200, decay: 0.008, diffuse: 0.95, deposit: 0.2 },
+    coral: { sensorAngle: 0.6, sensorDist: 25, turnSpeed: 5, moveSpeed: 80, decay: 0.003, diffuse: 0.99, deposit: 0.5 },
+    electric: { sensorAngle: 0.15, sensorDist: 80, turnSpeed: 12, moveSpeed: 400, decay: 0.04, diffuse: 0.6, deposit: 0.1 },
+    lava: { sensorAngle: 0.5, sensorDist: 40, turnSpeed: 1.5, moveSpeed: 60, decay: 0.002, diffuse: 0.995, deposit: 0.6 }
+};
+
+window.applyPreset = function(name) {
+    const p = presets[name];
+    if (!p) return;
+    Object.assign(config, p);
+    updateUIFromConfig();
+};
+
+function updateUIFromConfig() {
+    const ids = ['sensorAngle', 'sensorDist', 'turnSpeed', 'moveSpeed', 'decay', 'diffuse', 'deposit'];
+    ids.forEach(id => {
+        const slider = document.getElementById(id);
+        const num = document.getElementById(id + 'Num');
+        if (slider) slider.value = config[id];
+        if (num) num.value = config[id];
+    });
+}
+
+window.setBrush = function(type) {
+    config.brushType = type;
+    ['brushCircle', 'brushSquare', 'brushSpray', 'brushRing', 'brushErase'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+    });
+    document.getElementById('brush' + type.charAt(0).toUpperCase() + type.slice(1)).classList.add('active');
+};
+
+window.setSpawnMode = function(mode) {
+    config.spawnMode = mode;
+    ['spawnRandom', 'spawnCenter', 'spawnRing', 'spawnGrid', 'spawnSpiral'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+    });
+    document.getElementById('spawn' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+    resetAgents();
+};
+
+window.togglePause = function() {
+    paused = !paused;
+    document.getElementById('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
+    document.getElementById('pauseBtn').classList.toggle('active', paused);
+};
+
+window.toggleUI = function() {
+    const ui = document.getElementById('ui');
+    const btn = document.getElementById('toggleBtn');
+    ui.classList.toggle('minimized');
+    btn.textContent = ui.classList.contains('minimized') ? '+' : '−';
+};
+
+window.screenshot = function() {
+    const link = document.createElement('a');
+    link.download = `physarum_${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+};
+
+window.randomize = function() {
+    config.sensorAngle = Math.random() * 1.2 + 0.1;
+    config.sensorDist = Math.random() * 70 + 10;
+    config.turnSpeed = Math.random() * 15 + 1;
+    config.moveSpeed = Math.random() * 350 + 50;
+    config.decay = Math.random() * 0.04;
+    config.diffuse = Math.random() * 0.4 + 0.6;
+    config.deposit = Math.random() * 0.5 + 0.1;
+    updateUIFromConfig();
+};
+
+// UI Binding - dual inputs (slider + number)
+const bindDual = (id) => {
+    const slider = document.getElementById(id);
+    const num = document.getElementById(id + 'Num');
+    if (!slider) return;
+
+    const update = (val) => {
+        config[id] = parseFloat(val);
+        if (slider) slider.value = val;
+        if (num) num.value = val;
+    };
+
+    slider.addEventListener('input', (e) => update(e.target.value));
+    if (num) num.addEventListener('input', (e) => update(e.target.value));
+};
+
+['sensorAngle', 'sensorDist', 'turnSpeed', 'moveSpeed', 'ownAttraction', 'otherAttraction', 'decay', 'diffuse', 'deposit', 'trailCap', 'brushSize', 'brushStrength', 'brightness', 'contrast', 'simSpeed'].forEach(bindDual);
+
+document.getElementById('agentCountSelect').addEventListener('change', (e) => {
+    config.agentCount = parseInt(e.target.value);
+    resetAgents();
+});
+
+document.getElementById('palette').addEventListener('change', (e) => {
+    config.palette = parseInt(e.target.value);
+});
+
+document.getElementById('showAgents').addEventListener('change', (e) => {
+    config.showAgents = e.target.value;
+});
+
+// Interaction mode presets
+const interactionPresets = {
+    simple: { ownAttraction: 1.0, otherAttraction: 0.5 },
+    cooperative: { ownAttraction: 1.0, otherAttraction: 1.0 },
+    territorial: { ownAttraction: 1.0, otherAttraction: -0.5 },
+    predator: { ownAttraction: 0.8, otherAttraction: -1.0 }
+};
+
+document.getElementById('interactionMode').addEventListener('change', (e) => {
+    const preset = interactionPresets[e.target.value];
+    if (preset) {
+        config.ownAttraction = preset.ownAttraction;
+        config.otherAttraction = preset.otherAttraction;
+        // Update UI
+        document.getElementById('ownAttraction').value = preset.ownAttraction;
+        document.getElementById('ownAttractionNum').value = preset.ownAttraction;
+        document.getElementById('otherAttraction').value = preset.otherAttraction;
+        document.getElementById('otherAttractionNum').value = preset.otherAttraction;
+    }
+});
+
+// Shader utilities
+const src = (id) => document.getElementById(id).textContent.trim();
+
+function createShader(gl, type, source) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, source);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(s));
+        return null;
+    }
+    return s;
+}
+
+function createProgram(gl, vsSrc, fsSrc, tfVaryings) {
+    const vs = createShader(gl, gl.VERTEX_SHADER, vsSrc);
+    const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSrc);
+    const p = gl.createProgram();
+    gl.attachShader(p, vs);
+    gl.attachShader(p, fs);
+
+    if (tfVaryings) {
+        gl.transformFeedbackVaryings(p, tfVaryings, gl.INTERLEAVED_ATTRIBS);
+    }
+
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+        console.error(gl.getProgramInfoLog(p));
+        return null;
+    }
+    return p;
+}
+
+// Programs
+const updateProg = createProgram(gl, src('vs-update'), src('fs-dummy'), ['v_position', 'v_angle', 'v_species']);
+const drawProg = createProgram(gl, src('vs-draw'), src('fs-draw'));
+const brushProg = createProgram(gl, src('vs-quad'), src('fs-brush'));
+const diffuseProg = createProgram(gl, src('vs-quad'), src('fs-diffuse'));
+const displayProg = createProgram(gl, src('vs-quad'), src('fs-display'));
+const agentsProg = createProgram(gl, src('vs-agents'), src('fs-agents'));
+
+// Locations
+const uLoc = {
+    map: gl.getUniformLocation(updateProg, 'u_trailMap'),
+    res: gl.getUniformLocation(updateProg, 'u_resolution'),
+    time: gl.getUniformLocation(updateProg, 'u_time'),
+    dt: gl.getUniformLocation(updateProg, 'u_dt'),
+    sAngle: gl.getUniformLocation(updateProg, 'u_sensorAngle'),
+    sDist: gl.getUniformLocation(updateProg, 'u_sensorDist'),
+    tSpeed: gl.getUniformLocation(updateProg, 'u_turnSpeed'),
+    mSpeed: gl.getUniformLocation(updateProg, 'u_moveSpeed'),
+    ownAttr: gl.getUniformLocation(updateProg, 'u_ownAttraction'),
+    otherAttr: gl.getUniformLocation(updateProg, 'u_otherAttraction'),
+};
+const dLoc = {
+    res: gl.getUniformLocation(drawProg, 'u_resolution'),
+    ptSize: gl.getUniformLocation(drawProg, 'u_pointSize'),
+    deposit: gl.getUniformLocation(drawProg, 'u_deposit')
+};
+const brushLoc = {
+    mouse: gl.getUniformLocation(brushProg, 'u_mouse'),
+    res: gl.getUniformLocation(brushProg, 'u_resolution'),
+    size: gl.getUniformLocation(brushProg, 'u_brushSize'),
+    strength: gl.getUniformLocation(brushProg, 'u_brushStrength'),
+    type: gl.getUniformLocation(brushProg, 'u_brushType'),
+    time: gl.getUniformLocation(brushProg, 'u_time')
+};
+const dfLoc = {
+    map: gl.getUniformLocation(diffuseProg, 'u_trailMap'),
+    res: gl.getUniformLocation(diffuseProg, 'u_resolution'),
+    decay: gl.getUniformLocation(diffuseProg, 'u_decay'),
+    diffuse: gl.getUniformLocation(diffuseProg, 'u_diffuse'),
+    trailCap: gl.getUniformLocation(diffuseProg, 'u_trailCap')
+};
+const dispLoc = {
+    map: gl.getUniformLocation(displayProg, 'u_trailMap'),
+    palette: gl.getUniformLocation(displayProg, 'u_palette'),
+    brightness: gl.getUniformLocation(displayProg, 'u_brightness'),
+    contrast: gl.getUniformLocation(displayProg, 'u_contrast')
+};
+const agentsLoc = {
+    res: gl.getUniformLocation(agentsProg, 'u_resolution'),
+    ptSize: gl.getUniformLocation(agentsProg, 'u_pointSize'),
+    mode: gl.getUniformLocation(agentsProg, 'u_mode'),
+    palette: gl.getUniformLocation(agentsProg, 'u_palette')
+};
+
+// Quad buffer
+const quadVAO = gl.createVertexArray();
+const quadBuf = gl.createBuffer();
+gl.bindVertexArray(quadVAO);
+gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0);
+gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+
+// ID Buffer
+let idBuf = null;
+function ensureIdBuffer(count) {
+    if(idBuf) gl.deleteBuffer(idBuf);
+    const ids = new Float32Array(count);
+    for(let i=0; i<count; i++) ids[i] = i;
+    idBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, idBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, ids, gl.STATIC_DRAW);
+}
+
+let agentsA = { vao: null, buf: null, tf: null };
+let agentsB = { vao: null, buf: null, tf: null };
+
+function createAgents(count) {
+    const data = new Float32Array(count * 4);
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const maxR = Math.min(cx, cy) * 0.8;
+
+    for(let i=0; i<count; i++) {
+        let x, y, angle;
+        const t = i / count;
+
+        switch(config.spawnMode) {
+            case 'center':
+                const cr = Math.random() * 50;
+                const ca = Math.random() * Math.PI * 2;
+                x = cx + Math.cos(ca) * cr;
+                y = cy + Math.sin(ca) * cr;
+                angle = ca + Math.PI + (Math.random() - 0.5) * 0.5;
+                break;
+            case 'ring':
+                const ra = t * Math.PI * 2;
+                const rr = maxR * (0.9 + Math.random() * 0.1);
+                x = cx + Math.cos(ra) * rr;
+                y = cy + Math.sin(ra) * rr;
+                angle = ra + Math.PI + (Math.random() - 0.5) * 0.3;
+                break;
+            case 'grid':
+                const cols = Math.ceil(Math.sqrt(count * canvas.width / canvas.height));
+                const rows = Math.ceil(count / cols);
+                const gx = (i % cols) / cols;
+                const gy = Math.floor(i / cols) / rows;
+                x = gx * canvas.width;
+                y = gy * canvas.height;
+                angle = Math.random() * Math.PI * 2;
+                break;
+            case 'spiral':
+                const st = t * 10;
+                const sr = st * maxR / 10;
+                x = cx + Math.cos(st * Math.PI * 2) * sr;
+                y = cy + Math.sin(st * Math.PI * 2) * sr;
+                angle = st * Math.PI * 2 + Math.PI / 2;
+                break;
+            default: // random
+                x = Math.random() * canvas.width;
+                y = Math.random() * canvas.height;
+                angle = Math.random() * Math.PI * 2;
+        }
+
+        data[i*4+0] = x;
+        data[i*4+1] = y;
+        data[i*4+2] = angle;
+        data[i*4+3] = Math.floor(Math.random() * 3); // Discrete species: 0, 1, or 2
+    }
+
+    const vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
+    gl.enableVertexAttribArray(1);
+    gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 16, 8);
+    gl.enableVertexAttribArray(2);
+    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 16, 12);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, idBuf);
+    gl.enableVertexAttribArray(3);
+    gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 4, 0);
+
+    const tf = gl.createTransformFeedback();
+    gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, tf);
+    gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, buf);
+    gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+
+    return { vao, buf, tf };
+}
+
+window.resetAgents = function() {
+    if(agentsA.buf) gl.deleteBuffer(agentsA.buf);
+    if(agentsB.buf) gl.deleteBuffer(agentsB.buf);
+
+    ensureIdBuffer(config.agentCount);
+
+    agentsA = createAgents(config.agentCount);
+    agentsB = createAgents(config.agentCount);
+
+    document.getElementById('stats').innerText = `AGENTS: ${(config.agentCount/1000).toFixed(0)}k`;
+};
+
+// Trail Maps
+let trailA = { fbo: null, tex: null };
+let trailB = { fbo: null, tex: null };
+
+function createTrail() {
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, canvas.width, canvas.height, 0, gl.RGBA, gl.HALF_FLOAT, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    const fbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    return { fbo, tex };
+}
+
+function resetTrails() {
+    if(trailA.tex) gl.deleteTexture(trailA.tex);
+    if(trailB.tex) gl.deleteTexture(trailB.tex);
+    trailA = createTrail();
+    trailB = createTrail();
+}
+
+window.wipeCanvas = function() {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, trailA.fbo);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, trailB.fbo);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+};
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    resetTrails();
+    resetAgents();
+}
+window.addEventListener('resize', resize);
+
+// Mouse/touch handling for brush painting
+function updateMousePos(clientX, clientY) {
+    mousePos.x = clientX;
+    mousePos.y = canvas.height - clientY;
+}
+
+canvas.addEventListener('mousedown', (e) => {
+    if (e.button === 0) {
+        isPainting = true;
+        updateMousePos(e.clientX, e.clientY);
+    }
+});
+canvas.addEventListener('mouseup', () => { isPainting = false; });
+canvas.addEventListener('mouseleave', () => { isPainting = false; });
+canvas.addEventListener('mousemove', (e) => {
+    if (isPainting) updateMousePos(e.clientX, e.clientY);
+});
+
+// Touch support
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    isPainting = true;
+    const touch = e.touches[0];
+    updateMousePos(touch.clientX, touch.clientY);
+}, { passive: false });
+canvas.addEventListener('touchend', () => { isPainting = false; });
+canvas.addEventListener('touchcancel', () => { isPainting = false; });
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (isPainting) {
+        const touch = e.touches[0];
+        updateMousePos(touch.clientX, touch.clientY);
+    }
+}, { passive: false });
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    switch(e.key.toLowerCase()) {
+        case ' ': e.preventDefault(); togglePause(); break;
+        case 'h': toggleUI(); break;
+        case 'r': resetAgents(); break;
+        case 'w': wipeCanvas(); break;
+        case 's': screenshot(); break;
+        case '1': applyPreset('classic'); break;
+        case '2': applyPreset('veins'); break;
+        case '3': applyPreset('maze'); break;
+        case '4': applyPreset('explosion'); break;
+        case '5': applyPreset('spiral'); break;
+        case '6': applyPreset('coral'); break;
+        case '7': applyPreset('electric'); break;
+        case '8': applyPreset('lava'); break;
+    }
+});
+
+// Main loop
+resize();
+
+let frame = 0;
+let lastTime = performance.now();
+
+// Context lost recovery
+canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+    console.log('WebGL context lost. Reload the page to recover.');
+    document.getElementById('stats').innerText = 'CONTEXT LOST - Reload page';
+});
+
+function step(t) {
+    requestAnimationFrame(step);
+
+    if (paused || gl.isContextLost()) return;
+
+    const rawDt = Math.min((t - lastTime) / 1000, 0.05);
+    const dt = rawDt * config.simSpeed;
+    lastTime = t;
+    frame++;
+
+    const srcAg = frame % 2 === 0 ? agentsA : agentsB;
+    const dstAg = frame % 2 === 0 ? agentsB : agentsA;
+    const srcTr = frame % 2 === 0 ? trailA : trailB;
+    const dstTr = frame % 2 === 0 ? trailB : trailA;
+
+    // Clear texture bindings to prevent feedback loops
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    // 1. UPDATE AGENTS (Transform Feedback - no framebuffer needed)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.useProgram(updateProg);
+    gl.bindVertexArray(srcAg.vao);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, srcTr.tex);
+    gl.uniform1i(uLoc.map, 0);
+    gl.uniform2f(uLoc.res, canvas.width, canvas.height);
+    gl.uniform1f(uLoc.time, t/1000);
+    gl.uniform1f(uLoc.dt, dt);
+    gl.uniform1f(uLoc.sAngle, config.sensorAngle);
+    gl.uniform1f(uLoc.sDist, config.sensorDist);
+    gl.uniform1f(uLoc.tSpeed, config.turnSpeed);
+    gl.uniform1f(uLoc.mSpeed, config.moveSpeed);
+    gl.uniform1f(uLoc.ownAttr, config.ownAttraction);
+    gl.uniform1f(uLoc.otherAttr, config.otherAttraction);
+
+    gl.enable(gl.RASTERIZER_DISCARD);
+    gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, dstAg.tf);
+    gl.beginTransformFeedback(gl.POINTS);
+    gl.drawArrays(gl.POINTS, 0, config.agentCount);
+    gl.endTransformFeedback();
+    gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+    gl.disable(gl.RASTERIZER_DISCARD);
+
+    // Unbind texture before switching framebuffers
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    // 2. DIFFUSE TRAIL (read from srcTr, write to dstTr)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, dstTr.fbo);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.useProgram(diffuseProg);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, srcTr.tex);
+    gl.uniform1i(dfLoc.map, 0);
+    gl.uniform2f(dfLoc.res, canvas.width, canvas.height);
+    gl.uniform1f(dfLoc.decay, config.decay * dt * 60.0);
+    gl.uniform1f(dfLoc.diffuse, config.diffuse);
+    gl.uniform1f(dfLoc.trailCap, config.trailCap);
+    gl.bindVertexArray(quadVAO);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    // Unbind texture before drawing agents (they don't need to read it)
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    // 3. DRAW AGENTS INTO TRAIL (still writing to dstTr)
+    gl.useProgram(drawProg);
+    gl.uniform2f(dLoc.res, canvas.width, canvas.height);
+    gl.uniform1f(dLoc.ptSize, config.agentCount < 50000 ? 2.0 : 1.0);
+    gl.uniform1f(dLoc.deposit, config.deposit);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE);
+    gl.bindVertexArray(dstAg.vao);
+    gl.drawArrays(gl.POINTS, 0, config.agentCount);
+
+    // 3b. BRUSH PAINTING (if painting, still writing to dstTr with blending)
+    if (isPainting) {
+        gl.useProgram(brushProg);
+        gl.uniform2f(brushLoc.mouse, mousePos.x, mousePos.y);
+        gl.uniform2f(brushLoc.res, canvas.width, canvas.height);
+        gl.uniform1f(brushLoc.size, config.brushSize);
+        gl.uniform1f(brushLoc.strength, config.brushStrength);
+        const brushTypeMap = { circle: 0, square: 1, spray: 2, ring: 3, erase: 4 };
+        gl.uniform1i(brushLoc.type, brushTypeMap[config.brushType] ?? 0);
+        gl.uniform1f(brushLoc.time, t / 1000);
+        gl.bindVertexArray(quadVAO);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+
+    gl.disable(gl.BLEND);
+
+    // Unbind framebuffer BEFORE binding the texture we were writing to
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    // 4. DISPLAY (read from dstTr, write to screen)
+    gl.useProgram(displayProg);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, dstTr.tex);
+    gl.uniform1i(dispLoc.map, 0);
+    gl.uniform1i(dispLoc.palette, config.palette);
+    gl.uniform1f(dispLoc.brightness, config.brightness);
+    gl.uniform1f(dispLoc.contrast, config.contrast);
+    gl.bindVertexArray(quadVAO);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    // 5. AGENT OVERLAY (optional)
+    if (config.showAgents !== 'off') {
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.useProgram(agentsProg);
+        gl.uniform2f(agentsLoc.res, canvas.width, canvas.height);
+        gl.uniform1i(agentsLoc.palette, config.palette);
+
+        // Mode-specific settings
+        const modeMap = { dots: 0, glow: 1, additive: 2, soft: 3, sparks: 4 };
+        const mode = modeMap[config.showAgents] ?? 0;
+        gl.uniform1i(agentsLoc.mode, mode);
+
+        // Point size per mode
+        const ptSizes = { dots: 3.0, glow: 6.0, additive: 5.0, soft: 8.0, sparks: 4.0 };
+        gl.uniform1f(agentsLoc.ptSize, ptSizes[config.showAgents] ?? 3.0);
+
+        gl.enable(gl.BLEND);
+        // Additive mode uses additive blending for bright effect
+        if (config.showAgents === 'additive') {
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+        } else {
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        }
+
+        gl.bindVertexArray(dstAg.vao);
+        gl.drawArrays(gl.POINTS, 0, config.agentCount);
+        gl.disable(gl.BLEND);
+    }
+
+    // Clean up texture binding at end of frame
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    if (frame%30===0) {
+        document.getElementById('stats').innerText = `FPS: ${Math.round(1/rawDt)} | ${(config.agentCount/1000).toFixed(0)}k`;
+    }
+}
+requestAnimationFrame(step);
+</script>
+</body>
+</html>

@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pulsion - Expérience de Rejouabilité</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #050505;
+            --text-color: #ffffff;
+            --accent-color: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Space Mono', monospace;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .ui-layer {
+            position: absolute;
+            pointer-events: none;
+            text-align: center;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            text-shadow: 0 0 20px currentColor;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.7;
+            margin-bottom: 2rem;
+        }
+
+        .score-display {
+            font-size: 6rem;
+            font-weight: 700;
+            opacity: 0.1;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            transition: opacity 0.2s;
+            color: var(--text-color);
+        }
+
+        .score-display.active {
+            opacity: 0.3;
+        }
+
+        .btn {
+            pointer-events: auto;
+            background: transparent;
+            border: 2px solid var(--text-color);
+            color: var(--text-color);
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-family: 'Space Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin: 0.5rem;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: var(--text-color);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px var(--text-color);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: wait;
+        }
+
+        .high-score {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            opacity: 0.6;
+        }
+
+        #death-screen {
+            background: rgba(0, 0, 0, 0.85); /* Fallback */
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            pointer-events: none;
+            max-width: none; /* Override max-width for full screen overlay */
+        }
+
+        #death-screen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .glitch {
+            animation: glitch 1s linear infinite;
+        }
+
+        @keyframes glitch {
+            2%, 64% { transform: translate(2px,0) skew(0deg); }
+            4%, 60% { transform: translate(-2px,0) skew(0deg); }
+            62% { transform: translate(0,0) skew(5deg); }
+        }
+        
+        #ai-taunt {
+            font-style: italic;
+            color: var(--accent-color);
+            margin: 1rem 0 2rem 0;
+            min-height: 1.5em;
+            max-width: 80%;
+            font-size: 1.1rem;
+            text-shadow: 0 0 5px currentColor;
+        }
+
+        #theme-name {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 0.8rem;
+            opacity: 0.5;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Message flash */
+        #flash-message {
+            position: absolute;
+            top: 20%;
+            width: 100%;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-color);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+            text-shadow: 0 0 10px currentColor;
+            pointer-events: none;
+        }
+
+        .loader {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- Background Score -->
+        <div class="score-display" id="bg-score">0</div>
+        
+        <div id="theme-name">SYSTEM: DEFAULT</div>
+
+        <!-- Canvas -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="ui-layer" style="opacity: 1; pointer-events: auto;">
+            <h1 class="title glitch">PULSION</h1>
+            <p class="subtitle">Cliquez ou Espace pour inverser la polarité</p>
+            <div>
+                <button class="btn" id="start-btn">INITIALISER</button>
+            </div>
+            <div style="margin-top: 1rem;">
+                <button class="btn" id="theme-btn" style="font-size: 0.9rem; padding: 0.8rem 1.5rem; border-color: var(--accent-color); color: var(--accent-color);">
+                    Nouveau Thème ✨
+                </button>
+            </div>
+        </div>
+
+        <!-- Death Screen -->
+        <div id="death-screen" class="ui-layer">
+            <h2 style="font-size: 2rem; margin-bottom: 0.5rem; color: #ff3333;" id="death-title">ÉCHEC DU SYSTÈME</h2>
+            <p style="margin-bottom: 0.5rem;">Score: <span id="final-score">0</span></p>
+            <div id="ai-taunt">Analyse de la performance...</div>
+            <button class="btn" id="retry-btn">RÉESSAYER</button>
+            <p class="high-score">Meilleur score: <span id="high-score-display">0</span></p>
+        </div>
+        
+        <div id="flash-message"></div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION API ---
+        const apiKey = ""; // La clé sera injectée par l'environnement
+        
+        // --- GAME PALETTE ---
+        let gamePalette = {
+            background: '#050505',
+            player: '#ffffff',
+            obstacle: '#ff0055',
+            track: '#00ffff',
+            name: 'DEFAULT'
+        };
+        
+        // --- PERFORMANCE CACHE ---
+        // Pre-calculate color strings to avoid parsing in render loop
+        let cachedColors = {
+            bgFade: 'rgba(5, 5, 5, 0.4)',
+            track: null,
+            player: '#ffffff',
+            playerTrail: 'rgba(255, 255, 255, 0.5)',
+            obstacle: '#ff0055'
+        };
+        
+        // --- GAME HISTORY ---
+        let gameHistory = [];
+
+        // --- GEMINI API INTEGRATION ---
+        
+        async function callGemini(prompt, isJson = false) {
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: isJson ? { responseMimeType: "application/json" } : {}
+                    })
+                });
+                
+                if (!response.ok) throw new Error('API Error');
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (error) {
+                console.error("Gemini Error:", error);
+                return null;
+            }
+        }
+
+        async function generateAiTaunt(score, highScore) {
+            const tauntEl = document.getElementById('ai-taunt');
+            tauntEl.innerHTML = "<span class='loader'>↻</span> Analyse...";
+            
+            const recentScores = gameHistory.slice(-5).join(', ');
+            const totalGames = gameHistory.length;
+            
+            const prompt = `
+                Tu es une machine d'arcade sarcastique et consciente (comme GLaDOS).
+                Le joueur vient de perdre au jeu "Pulsion".
+                C'est un jeu d'arcade minimaliste, hypnotique, basé sur le rythme et les réflexes.
+                L'objectif est simple : Le joueur est un point en orbite. Il clique pour changer de côté (intérieur/extérieur) afin d'éviter les triangles dangereux qui lui casse le ionf.
+                
+                DONNÉES ACTUELLES:
+                - Score actuel: ${score}
+                - Meilleur Score absolu: ${highScore}
+                - Nombre de parties jouées cette session: ${totalGames}
+                - Historique des 5 dernières parties: [${recentScores}]
+                
+                ANALYSE LA TENDANCE ET GÉNÈRE UN PROVERBE MERDIQUE (max 12 mots) en Français :
+                Ne mets pas de guillemets, pas de markdown. Sois créatif et drôle, tu peux être méchant.
+            `;
+
+            const text = await callGemini(prompt);
+            if (text) {
+                tauntEl.innerText = text;
+            } else {
+                tauntEl.innerText = "Connexion neurale perdue...";
+            }
+        }
+
+        async function generateAiTheme() {
+            const btn = document.getElementById('theme-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "<span class='loader'>↻</span> Rêve...";
+            btn.disabled = true;
+
+            const prompt = `
+                Génère une palette de couleurs créative pour un jeu d'arcade sombre et néon.
+                Retourne UNIQUEMENT un objet JSON avec ces clés (valeurs hexadécimales) :
+                - "background": (très sombre, ex: noir, bleu nuit profond, violet très sombre)
+                - "player": (couleur vive néon pour le joueur)
+                - "obstacle": (couleur de danger très visible, rouge, orange, rose vif)
+                - "track": (couleur pour la piste circulaire)
+                - "name": (nom court et évocateur en Français, ex: "CYBER", "VAPOR", "ABYSS")
+            `;
+
+            const jsonStr = await callGemini(prompt, true);
+            
+            if (jsonStr) {
+                try {
+                    const theme = JSON.parse(jsonStr);
+                    applyTheme(theme);
+                } catch (e) {
+                    console.error("Parse error", e);
+                }
+            }
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+
+        function applyTheme(theme) {
+            const safeTheme = {
+                background: '#050505',
+                player: '#ffffff',
+                obstacle: '#ff0055',
+                track: '#00ffff',
+                name: 'UNKNOWN',
+                ...theme
+            };
+
+            gamePalette = safeTheme;
+            
+            // --- OPTIMIZATION: Update Cache ---
+            cachedColors = {
+                bgFade: hexToRgba(safeTheme.background, 0.4),
+                track: safeTheme.name === 'DEFAULT' ? null : hexToRgba(safeTheme.track, 0.5),
+                player: safeTheme.player,
+                playerTrail: hexToRgba(safeTheme.player, 0.5),
+                obstacle: safeTheme.obstacle
+            };
+
+            // Apply CSS variables
+            document.documentElement.style.setProperty('--bg-color', safeTheme.background);
+            document.documentElement.style.setProperty('--text-color', safeTheme.player);
+            document.documentElement.style.setProperty('--accent-color', safeTheme.obstacle);
+            
+            // Update UI
+            document.getElementById('death-screen').style.background = hexToRgba(safeTheme.background, 0.9);
+            document.getElementById('theme-name').innerText = `SYSTEM: ${safeTheme.name}`;
+            document.getElementById('death-title').style.color = safeTheme.obstacle;
+            
+            showFlash(`THÈME ACTIVÉ: ${safeTheme.name}`, safeTheme.player);
+        }
+
+        function hexToRgba(hex, alpha) {
+            if (!hex || typeof hex !== 'string') return `rgba(0, 0, 0, ${alpha})`;
+            if (hex.charAt(0) !== '#') hex = '#' + hex;
+            if (hex.length === 4) {
+                hex = '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+            }
+            try {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                if (isNaN(r) || isNaN(g) || isNaN(b)) return `rgba(0, 0, 0, ${alpha})`;
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            } catch (e) {
+                return `rgba(0, 0, 0, ${alpha})`;
+            }
+        }
+
+
+        // --- AUDIO ENGINE ---
+        const AudioEngine = {
+            ctx: null,
+            init: function() {
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioContext();
+            },
+            playTone: function(freq, type, duration, vol = 0.1) {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            },
+            playSwitch: function() {
+                this.playTone(800, 'square', 0.1, 0.05);
+            },
+            playScore: function() {
+                this.playTone(1200, 'sine', 0.15, 0.05);
+            },
+            playCrash: function() {
+                this.playTone(100, 'sawtooth', 0.4, 0.2);
+                this.playTone(50, 'square', 0.4, 0.2);
+            },
+            playLevelUp: function() {
+                this.playTone(440, 'sine', 0.1, 0.05);
+                setTimeout(() => this.playTone(554, 'sine', 0.1, 0.05), 50);
+                setTimeout(() => this.playTone(659, 'sine', 0.2, 0.05), 100);
+            }
+        };
+
+        // --- GAME ENGINE ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const bgScore = document.getElementById('bg-score');
+        const startScreen = document.getElementById('start-screen');
+        const deathScreen = document.getElementById('death-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const highScoreDisplay = document.getElementById('high-score-display');
+        const flashMsg = document.getElementById('flash-message');
+
+        let width, height;
+        let lastTime = 0;
+        let score = 0;
+        let highScore = localStorage.getItem('pulsion_highscore') || 0;
+        let state = 'MENU'; // MENU, PLAYING, GAMEOVER
+
+        // Game Constants
+        const BASE_RADIUS = 100;
+        const PLAYER_SIZE = 8;
+        
+        // Game State Variables
+        let player = {
+            angle: 0,
+            radiusOffset: 0, 
+            side: 1, 
+            speed: 1.8, 
+            trail: []
+        };
+        
+        let obstacles = [];
+        let particles = [];
+        let gameSpeed = 1;
+        let shake = 0;
+        let hue = 180;
+
+        // --- RESIZE ---
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width * window.devicePixelRatio;
+            canvas.height = height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            canvas.style.width = `${width}px`;
+            canvas.style.height = `${height}px`;
+        }
+        window.addEventListener('resize', resize);
+        
+        // --- UTILS ---
+        function randomRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        function showFlash(text, color) {
+            flashMsg.innerText = text;
+            flashMsg.style.color = color;
+            flashMsg.style.opacity = 1;
+            flashMsg.style.transform = 'translateY(0)';
+            setTimeout(() => {
+                flashMsg.style.opacity = 0;
+                flashMsg.style.transform = 'translateY(20px)';
+            }, 800);
+        }
+
+        // --- CORE FUNCTIONS ---
+
+        function initGame() {
+            score = 0;
+            gameSpeed = 1;
+            player.angle = 0;
+            player.side = 1;
+            player.radiusOffset = 20;
+            player.speed = 1.8; 
+            player.trail = [];
+            obstacles = [];
+            particles = [];
+            hue = 180;
+            
+            bgScore.innerText = "0";
+            bgScore.classList.add('active');
+            bgScore.style.color = gamePalette.player;
+            
+            state = 'PLAYING';
+            lastTime = performance.now();
+            
+            startScreen.style.opacity = 0;
+            startScreen.style.pointerEvents = 'none';
+            deathScreen.classList.remove('visible');
+            
+            AudioEngine.playLevelUp();
+            loop();
+        }
+
+        function spawnObstacle() {
+            const type = Math.random();
+            let obs = {
+                angle: player.angle + Math.PI + randomRange(0.5, 2), 
+                type: 'OUTSIDE', 
+                active: true,
+                passed: false
+            };
+
+            if(obstacles.length > 0) {
+                 const lastObs = obstacles[obstacles.length - 1];
+                 if (obs.angle - lastObs.angle < 1.0) {
+                     obs.angle = lastObs.angle + 1.0 + randomRange(0.2, 0.5);
+                 }
+            }
+
+            if (type < 0.45) obs.type = 'OUTSIDE';
+            else if (type < 0.90) obs.type = 'INSIDE';
+            else obs.type = Math.random() > 0.5 ? 'INSIDE' : 'OUTSIDE';
+            
+            obstacles.push(obs);
+        }
+
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1.0,
+                    color: color
+                });
+            }
+        }
+
+        function gameOver() {
+            state = 'GAMEOVER';
+            gameHistory.push(score);
+            
+            shake = 20;
+            AudioEngine.playCrash();
+            createExplosion(
+                width/2 + Math.cos(player.angle)*(BASE_RADIUS + player.radiusOffset), 
+                height/2 + Math.sin(player.angle)*(BASE_RADIUS + player.radiusOffset), 
+                gamePalette.obstacle
+            );
+            
+            bgScore.classList.remove('active');
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('pulsion_highscore', highScore);
+                showFlash("NOUVEAU RECORD !", "#ffff00");
+            }
+
+            finalScoreDisplay.innerText = score;
+            highScoreDisplay.innerText = highScore;
+            
+            generateAiTaunt(score, highScore);
+            
+            setTimeout(() => {
+                deathScreen.classList.add('visible');
+            }, 500);
+        }
+
+        function switchPolarity() {
+            if (state !== 'PLAYING') return;
+            player.side *= -1;
+            AudioEngine.playSwitch();
+            createExplosion(
+                width/2 + Math.cos(player.angle)*(BASE_RADIUS), 
+                height/2 + Math.sin(player.angle)*(BASE_RADIUS), 
+                gamePalette.player
+            );
+        }
+
+        function update(dt) {
+            if (dt > 0.1) dt = 0.1;
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx * (dt * 60); 
+                p.y += p.vy * (dt * 60);
+                p.life -= 2.0 * dt; 
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            if (state !== 'PLAYING') return;
+
+            gameSpeed += 0.03 * dt; 
+            hue = (hue + 20 * dt) % 360;
+
+            player.angle += player.speed * gameSpeed * dt;
+            
+            const targetOffset = player.side === 1 ? 25 : -25;
+            const lerpSpeed = 15;
+            player.radiusOffset += (targetOffset - player.radiusOffset) * (1 - Math.exp(-lerpSpeed * dt));
+
+            if (player.trail.length === 0 || Math.abs(player.angle - player.trail[player.trail.length-1].angle) > 0.1) {
+                if (player.trail.length > 20) player.trail.shift();
+                player.trail.push({
+                    angle: player.angle,
+                    radiusOffset: player.radiusOffset
+                });
+            }
+
+            if (obstacles.length < 5) spawnObstacle();
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                let pAngle = player.angle; 
+                let oAngle = obs.angle;
+                
+                if (pAngle > oAngle && !obs.passed) {
+                    const isHit = (obs.type === 'OUTSIDE' && player.side === 1) || 
+                                  (obs.type === 'INSIDE' && player.side === -1);
+                    
+                    if (isHit) {
+                        if (pAngle - oAngle < 0.5) { 
+                            gameOver();
+                            return;
+                        }
+                    } else {
+                        obs.passed = true;
+                        score++;
+                        bgScore.innerText = score;
+                        AudioEngine.playScore();
+                        shake = 5; 
+                        
+                        if(score === 10) showFlash("BIEN", gamePalette.player);
+                        if(score === 25) showFlash("ACCÉLÉRATION", gamePalette.player);
+                        if(score === 50) showFlash("HYPNOSE", gamePalette.player);
+                    }
+                }
+                if (pAngle > oAngle + Math.PI) obstacles.splice(i, 1);
+            }
+
+            if (shake > 0) shake *= Math.pow(0.1, dt);
+            if (shake < 0.5) shake = 0;
+        }
+
+        function draw() {
+            // --- OPTIMIZATION: Use cached color ---
+            ctx.fillStyle = cachedColors.bgFade;
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.save();
+            
+            if (shake > 0) {
+                const dx = (Math.random() - 0.5) * shake;
+                const dy = (Math.random() - 0.5) * shake;
+                ctx.translate(dx, dy);
+            }
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            // Draw Base Circle (Track)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, BASE_RADIUS, 0, Math.PI * 2);
+            
+            // --- OPTIMIZATION: Use cached color or pre-calculated rainbow ---
+            if (cachedColors.track) {
+                ctx.strokeStyle = cachedColors.track;
+            } else {
+                ctx.strokeStyle = `hsla(${hue}, 50%, 30%, 0.5)`;
+            }
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // --- OPTIMIZATION: Enable Additive Blending for Neon Glow (No ShadowBlur) ---
+            ctx.globalCompositeOperation = 'lighter';
+
+            // Draw Obstacles
+            obstacles.forEach(obs => {
+                if (obs.passed) return;
+                const angle = obs.angle;
+                if (angle > player.angle + Math.PI * 1.5) return;
+
+                const cx = centerX + Math.cos(angle) * BASE_RADIUS;
+                const cy = centerY + Math.sin(angle) * BASE_RADIUS;
+                
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angle);
+                
+                // --- OPTIMIZATION: Use cached color ---
+                ctx.fillStyle = cachedColors.obstacle;
+                // No shadowBlur here, using 'lighter' composite instead
+                
+                ctx.beginPath();
+                if (obs.type === 'OUTSIDE') {
+                    ctx.moveTo(0, -12);  
+                    ctx.lineTo(0, 12);   
+                    ctx.lineTo(30, 0);   
+                } else {
+                    ctx.moveTo(0, -12);  
+                    ctx.lineTo(0, 12);   
+                    ctx.lineTo(-30, 0);  
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Draw Player Trail
+            if (player.trail.length > 0) {
+                ctx.beginPath();
+                ctx.moveTo(
+                    centerX + Math.cos(player.trail[0].angle) * (BASE_RADIUS + player.trail[0].radiusOffset),
+                    centerY + Math.sin(player.trail[0].angle) * (BASE_RADIUS + player.trail[0].radiusOffset)
+                );
+                for (let p of player.trail) {
+                    ctx.lineTo(
+                        centerX + Math.cos(p.angle) * (BASE_RADIUS + p.radiusOffset),
+                        centerY + Math.sin(p.angle) * (BASE_RADIUS + p.radiusOffset)
+                    );
+                }
+                
+                if (gamePalette.name === 'DEFAULT') {
+                    ctx.strokeStyle = `hsla(${hue}, 100%, 70%, 0.5)`;
+                } else {
+                    // --- OPTIMIZATION: Use cached color ---
+                    ctx.strokeStyle = cachedColors.playerTrail;
+                }
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            // Draw Player
+            const px = centerX + Math.cos(player.angle) * (BASE_RADIUS + player.radiusOffset);
+            const py = centerY + Math.sin(player.angle) * (BASE_RADIUS + player.radiusOffset);
+            
+            ctx.beginPath();
+            ctx.arc(px, py, PLAYER_SIZE, 0, Math.PI * 2);
+            // --- OPTIMIZATION: Use cached color ---
+            ctx.fillStyle = cachedColors.player;
+            ctx.fill();
+
+            // Draw Particles
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, randomRange(1, 3), 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            // Reset Composite for next frame bg clear
+            ctx.globalCompositeOperation = 'source-over';
+
+            ctx.restore();
+        }
+
+        function loop() {
+            if (state === 'MENU') {
+                draw();
+                requestAnimationFrame(loop);
+                return;
+            }
+            
+            const now = performance.now();
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+
+            if (state === 'PLAYING') {
+                update(dt);
+            } else if (state === 'GAMEOVER') {
+                update(dt); 
+            }
+            
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        // --- INPUT HANDLING ---
+        function handleInput(e) {
+            if (e.target.tagName === 'BUTTON') return;
+            if (e.type === 'keydown' && e.code !== 'Space') return;
+            if (e.type === 'keydown') e.preventDefault(); 
+
+            if (state === 'MENU') {
+                AudioEngine.init();
+                initGame();
+            } else if (state === 'PLAYING') {
+                switchPolarity();
+            } else if (state === 'GAMEOVER') {
+                 if (deathScreen.classList.contains('visible')) {
+                     initGame();
+                 }
+            }
+        }
+
+        window.addEventListener('keydown', handleInput);
+        window.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(e); }, {passive: false});
+        window.addEventListener('mousedown', handleInput);
+
+        document.getElementById('start-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            AudioEngine.init();
+            initGame();
+        });
+
+        document.getElementById('retry-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            initGame();
+        });
+        
+        document.getElementById('theme-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            generateAiTheme();
+        });
+        
+        // Initial Init
+        resize();
+        // Force cache init
+        applyTheme(gamePalette); 
+        loop();
+
+    </script>
+</body>
+</html>

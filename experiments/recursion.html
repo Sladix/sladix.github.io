@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weird sheet v2 - Brush Edition</title>
+    <style>
+        * { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #1a1a1a; font-family: 'Courier New', monospace; }
+
+        #container { display: flex; height: 100%; }
+
+        #sidebar {
+            width: 280px;
+            background: #fff;
+            padding: 15px;
+            overflow-y: auto;
+            border-right: 3px solid #000;
+            flex-shrink: 0;
+        }
+
+        #canvas-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #2a2a2a;
+        }
+
+        canvas {
+            background: #fafafa;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .section {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        .section:last-child { border-bottom: none; }
+
+        .section-title {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: 14px;
+            margin: 0 0 5px 0;
+            letter-spacing: 1px;
+        }
+
+        .seed-display {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        button {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            padding: 10px;
+            border: 2px solid #000;
+            background: #fff;
+            font-family: inherit;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        button:hover { background: #000; color: #fff; }
+        button:active { transform: scale(0.98); }
+        button.primary { background: #000; color: #fff; }
+        button.primary:hover { background: #333; }
+
+        .control-row {
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 0;
+            -webkit-appearance: none;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #000;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #000;
+            font-family: inherit;
+            font-size: 11px;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .value-display {
+            font-size: 11px;
+            font-weight: bold;
+            float: right;
+            color: #000;
+        }
+
+        .format-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .format-buttons button {
+            flex: 1;
+            margin: 0;
+        }
+        .format-buttons button.active {
+            background: #000;
+            color: #fff;
+        }
+
+        .pattern-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+        .pattern-btn {
+            padding: 6px 4px;
+            font-size: 8px;
+            margin: 0;
+        }
+        .pattern-btn.active {
+            background: #000;
+            color: #fff;
+        }
+
+        .hint {
+            font-size: 8px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .kbd {
+            display: inline-block;
+            padding: 2px 5px;
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 9px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <div id="sidebar">
+        <div class="section">
+            <h1>/// WEIRD SHEET</h1>
+            <div class="seed-display">SEED: <span id="seed-display">...</span></div>
+            <button class="primary" onclick="window.regenerate()">REGENERATE <span class="kbd">SPACE</span></button>
+            <button onclick="window.downloadSVG()">EXPORT SVG <span class="kbd">S</span></button>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Format</div>
+            <div class="format-buttons">
+                <button id="btn-a4" class="active" onclick="window.setFormat('A4')">A4</button>
+                <button id="btn-a3" onclick="window.setFormat('A3')">A3</button>
+            </div>
+            <div class="format-buttons" style="margin-top: 5px;">
+                <button id="btn-portrait" class="active" onclick="window.setOrientation('portrait')">Portrait</button>
+                <button id="btn-landscape" onclick="window.setOrientation('landscape')">Landscape</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Grid & Lines</div>
+            <div class="control-row">
+                <label>Subdivisions <span class="value-display" id="subdiv-value">4</span></label>
+                <input type="range" id="subdivisions" min="1" max="6" value="4" step="1" oninput="window.updateConfig()">
+                <div class="hint">Grid complexity (more = more cells)</div>
+            </div>
+            <div class="control-row">
+                <label>Line Spacing <span class="value-display" id="spacing-value">6</span>mm</label>
+                <input type="range" id="line-spacing" min="1" max="20" value="6" step="0.5" oninput="window.updateConfig()">
+                <div class="hint">Base density of fill patterns</div>
+            </div>
+            <div class="control-row">
+                <label>Stroke Width <span class="value-display" id="stroke-value">1.0</span>mm</label>
+                <input type="range" id="stroke-width" min="0.3" max="4" value="1.0" step="0.1" oninput="window.updateConfig()">
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Fill Style</div>
+            <select id="force-fill" onchange="window.updateConfig()">
+                <option value="">— Auto Mix —</option>
+                <option value="hatching">Hatching (parallel lines)</option>
+                <option value="crosshatch">Crosshatch (crossed lines)</option>
+                <option value="chevron">Chevron (zigzag)</option>
+                <option value="waves">Waves (smooth undulating)</option>
+                <option value="concentric">Concentric (rings)</option>
+                <option value="radial">Radial (sunburst)</option>
+                <option value="dots">Dots (stippling)</option>
+                <option value="bricks">Bricks (offset grid)</option>
+            </select>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Compositional Zones</div>
+            <div class="control-row">
+                <label>Zone Count <span class="value-display" id="zone-count-value">3</span></label>
+                <input type="range" id="zone-count" min="0" max="5" value="3" step="1" oninput="window.updateZones()">
+                <div class="hint">0 = uniform (no zones)</div>
+            </div>
+            <div class="control-row">
+                <label>Transition Width <span class="value-display" id="zone-trans-value">50</span>%</label>
+                <input type="range" id="zone-transition" min="20" max="100" value="50" step="5" oninput="window.updateZones()">
+                <div class="hint">How far zones blend</div>
+            </div>
+            <div class="control-row">
+                <label>Coherence <span class="value-display" id="zone-coh-value">20</span>%</label>
+                <input type="range" id="zone-coherence" min="0" max="50" value="20" step="5" oninput="window.updateZones()">
+                <div class="hint">Cross-cell continuity</div>
+            </div>
+            <div class="control-row">
+                <label>Zone Placement</label>
+                <select id="zone-placement" onchange="window.updateZones()">
+                    <option value="random">Random</option>
+                    <option value="corners">Corners</option>
+                    <option value="center">Center Focus</option>
+                    <option value="gradient">Gradient (L-R)</option>
+                </select>
+            </div>
+            <div class="control-row">
+                <label style="display: inline-flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="zone-borders" checked onchange="window.updateZones()">
+                    Show Cell Borders
+                </label>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Noise Drift</div>
+            <div class="control-row">
+                <label style="display: inline-flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="drift-enabled" checked onchange="window.updateDrift()">
+                    Enable Drift
+                </label>
+            </div>
+            <div class="control-row">
+                <label>Strength <span class="value-display" id="drift-strength-value">5</span>mm</label>
+                <input type="range" id="drift-strength" min="0" max="20" value="5" step="0.5" oninput="window.updateDrift()">
+                <div class="hint">Max displacement amount</div>
+            </div>
+            <div class="control-row">
+                <label>Scale <span class="value-display" id="drift-scale-value">0.010</span></label>
+                <input type="range" id="drift-scale" min="0" max="0.054" value="0.01" step="0.001" oninput="window.updateDrift()">
+                <div class="hint">Noise frequency (lower = larger waves)</div>
+            </div>
+            <div class="control-row">
+                <label>Octaves <span class="value-display" id="drift-octaves-value">2</span></label>
+                <input type="range" id="drift-octaves" min="1" max="4" value="2" step="1" oninput="window.updateDrift()">
+                <div class="hint">Detail level (more = finer detail)</div>
+            </div>
+            <div class="control-row">
+                <label style="display: inline-flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="drift-directional" onchange="window.updateDrift()">
+                    Directional (perpendicular)
+                </label>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Cell Warp</div>
+            <div class="control-row">
+                <label style="display: inline-flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="warp-enabled" checked onchange="window.updateWarp()">
+                    Enable Cell Warp
+                </label>
+            </div>
+            <div class="control-row">
+                <label>Strength <span class="value-display" id="warp-strength-value">8</span>mm</label>
+                <input type="range" id="warp-strength" min="0" max="30" value="8" step="1" oninput="window.updateWarp()">
+                <div class="hint">Boundary displacement</div>
+            </div>
+            <div class="control-row">
+                <label>Scale <span class="value-display" id="warp-scale-value">0.008</span></label>
+                <input type="range" id="warp-scale" min="0.001" max="0.03" value="0.008" step="0.001" oninput="window.updateWarp()">
+                <div class="hint">Warp frequency (lower = larger waves)</div>
+            </div>
+            <div class="control-row">
+                <label>Edge Samples <span class="value-display" id="warp-samples-value">8</span></label>
+                <input type="range" id="warp-samples" min="3" max="16" value="8" step="1" oninput="window.updateWarp()">
+                <div class="hint">Smoothness of deformation</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Quick Actions</div>
+            <button onclick="window.randomizeParams()">Randomize All</button>
+            <button onclick="window.resetParams()">Reset Defaults</button>
+        </div>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="myCanvas"></canvas>
+    </div>
+</div>
+
+<!-- Simplex Noise Implementation -->
+<script>
+(function(global) {
+    var F2 = 0.5 * (Math.sqrt(3) - 1);
+    var G2 = (3 - Math.sqrt(3)) / 6;
+
+    function SimplexNoise(randomFunc) {
+        this.p = buildPermutationTable(randomFunc || Math.random);
+        this.perm = new Uint8Array(512);
+        this.permMod12 = new Uint8Array(512);
+        for (var i = 0; i < 512; i++) {
+            this.perm[i] = this.p[i & 255];
+            this.permMod12[i] = this.perm[i] % 12;
+        }
+    }
+
+    function buildPermutationTable(random) {
+        var p = new Uint8Array(256);
+        for (var i = 0; i < 256; i++) p[i] = i;
+        for (var i = 255; i > 0; i--) {
+            var j = Math.floor(random() * (i + 1));
+            var tmp = p[i];
+            p[i] = p[j];
+            p[j] = tmp;
+        }
+        return p;
+    }
+
+    var grad3 = new Float32Array([
+        1, 1, 0, -1, 1, 0, 1, -1, 0, -1, -1, 0,
+        1, 0, 1, -1, 0, 1, 1, 0, -1, -1, 0, -1,
+        0, 1, 1, 0, -1, 1, 0, 1, -1, 0, -1, -1
+    ]);
+
+    SimplexNoise.prototype.noise2D = function(x, y) {
+        var perm = this.perm;
+        var permMod12 = this.permMod12;
+        var n0 = 0, n1 = 0, n2 = 0;
+        var s = (x + y) * F2;
+        var i = Math.floor(x + s);
+        var j = Math.floor(y + s);
+        var t = (i + j) * G2;
+        var X0 = i - t;
+        var Y0 = j - t;
+        var x0 = x - X0;
+        var y0 = y - Y0;
+        var i1, j1;
+        if (x0 > y0) { i1 = 1; j1 = 0; }
+        else { i1 = 0; j1 = 1; }
+        var x1 = x0 - i1 + G2;
+        var y1 = y0 - j1 + G2;
+        var x2 = x0 - 1 + 2 * G2;
+        var y2 = y0 - 1 + 2 * G2;
+        var ii = i & 255;
+        var jj = j & 255;
+        var t0 = 0.5 - x0 * x0 - y0 * y0;
+        if (t0 >= 0) {
+            var gi0 = permMod12[ii + perm[jj]] * 3;
+            t0 *= t0;
+            n0 = t0 * t0 * (grad3[gi0] * x0 + grad3[gi0 + 1] * y0);
+        }
+        var t1 = 0.5 - x1 * x1 - y1 * y1;
+        if (t1 >= 0) {
+            var gi1 = permMod12[ii + i1 + perm[jj + j1]] * 3;
+            t1 *= t1;
+            n1 = t1 * t1 * (grad3[gi1] * x1 + grad3[gi1 + 1] * y1);
+        }
+        var t2 = 0.5 - x2 * x2 - y2 * y2;
+        if (t2 >= 0) {
+            var gi2 = permMod12[ii + 1 + perm[jj + 1]] * 3;
+            t2 *= t2;
+            n2 = t2 * t2 * (grad3[gi2] * x2 + grad3[gi2 + 1] * y2);
+        }
+        return 70 * (n0 + n1 + n2);
+    };
+
+    global.SimplexNoise = SimplexNoise;
+})(window);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/paper@0.12.18/dist/paper-full.min.js"></script>
+
+<script>
+// ==========================================
+// GLOBAL CONFIG & STATE
+// ==========================================
+var DPI = 96; // Screen DPI for preview
+var MM_TO_PX = DPI / 25.4;
+
+var FORMATS = {
+    'A4': { width: 210, height: 297 },
+    'A3': { width: 297, height: 420 }
+};
+
+var CONFIG = {
+    format: 'A4',
+    orientation: 'portrait',
+    lineSpacing: 4,
+    strokeWidth: 1.0,
+    subdivisions: 4,
+    forceFill: '',  // Empty = auto-select fills
+    padding: 15 // mm
+};
+
+var currentSeed = Math.random() * 10000;
+var noise = null;
+
+// ==========================================
+// ZONE SYSTEM CONFIG
+// ==========================================
+var ZONES_CONFIG = {
+    enabled: true,
+    count: 3,
+    placement: 'random',      // 'random' | 'corners' | 'center' | 'gradient'
+    transitionWidth: 0.5,     // Zone radius multiplier (0.3-1.0)
+    coherenceStrength: 0.2,   // 0-0.5
+    showBorders: true
+};
+
+// ==========================================
+// NOISE DRIFT CONFIG (line-level)
+// ==========================================
+var DRIFT_CONFIG = {
+    enabled: true,
+    strength: 15,              // Max displacement in mm
+    scale: 0.001,              // Noise frequency (lower = larger waves)
+    octaves: 2,               // Detail level (1-4)
+    persistence: 0.5,         // Octave amplitude falloff
+    directional: false,       // If true, drift mainly perpendicular to lines
+    angleOffset: 0            // Base angle offset for directional drift
+};
+
+// ==========================================
+// CELL WARP CONFIG (boundary-level)
+// ==========================================
+var WARP_CONFIG = {
+    enabled: true,
+    strength: 20,              // Max displacement in mm
+    scale: 0.001,             // Noise frequency (lower = larger warps)
+    octaves: 2,               // Detail level
+    persistence: 0.5,
+    samplesPerEdge: 8         // Points along each edge for smooth deformation
+};
+
+// ==========================================
+// ZONE HELPER FUNCTIONS
+// ==========================================
+function smoothstep(edge0, edge1, x) {
+    x = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+    return x * x * (3 - 2 * x);
+}
+
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
+
+var FALLOFF_FUNCS = {
+    linear: function(distance, radius) {
+        return Math.max(0, 1 - distance / radius);
+    },
+    smooth: function(distance, radius) {
+        var t = Math.min(1, distance / radius);
+        return 1 - smoothstep(0, 1, t);
+    },
+    sharp: function(distance, radius) {
+        var t = Math.min(1, distance / radius);
+        return 1 - (t * t * t * t);
+    }
+};
+
+function generateMood(rng) {
+    return {
+        lineSpacingMult: 0.6 + rng() * 1.2,       // 0.6 - 1.8
+        noiseScaleMult: 0.4 + rng() * 2.0,        // 0.4 - 2.4
+        amplitudeMult: 0.3 + rng() * 2.0,         // 0.3 - 2.3
+        octavesOffset: Math.floor(rng() * 5) - 2, // -2 to +2
+        flowDirection: rng() < 0.2 ? null : rng() * 360
+    };
+}
+
+function generateZoneAnchors(rng, count, width, height) {
+    var anchors = [];
+
+    if (ZONES_CONFIG.placement === 'corners') {
+        var cornerPositions = [
+            { x: 0.25, y: 0.25 },
+            { x: 0.75, y: 0.25 },
+            { x: 0.25, y: 0.75 },
+            { x: 0.75, y: 0.75 }
+        ];
+        for (var i = 0; i < Math.min(count, 4); i++) {
+            anchors.push({
+                x: cornerPositions[i].x + (rng() - 0.5) * 0.1,
+                y: cornerPositions[i].y + (rng() - 0.5) * 0.1
+            });
+        }
+    } else if (ZONES_CONFIG.placement === 'center') {
+        anchors.push({ x: 0.5 + (rng() - 0.5) * 0.1, y: 0.5 + (rng() - 0.5) * 0.1 });
+        for (var i = 1; i < count; i++) {
+            var angle = (i / (count - 1)) * Math.PI * 2;
+            anchors.push({
+                x: 0.5 + Math.cos(angle) * 0.35 + (rng() - 0.5) * 0.1,
+                y: 0.5 + Math.sin(angle) * 0.35 + (rng() - 0.5) * 0.1
+            });
+        }
+    } else if (ZONES_CONFIG.placement === 'gradient') {
+        for (var i = 0; i < count; i++) {
+            anchors.push({
+                x: (i + 0.5) / count,
+                y: 0.5 + (rng() - 0.5) * 0.3
+            });
+        }
+    } else {
+        // Random - use rule-of-thirds with jitter
+        var thirds = [1/3, 2/3];
+        var candidates = [];
+        for (var i = 0; i < thirds.length; i++) {
+            for (var j = 0; j < thirds.length; j++) {
+                candidates.push({ x: thirds[i], y: thirds[j] });
+            }
+        }
+        // Shuffle candidates
+        for (var i = candidates.length - 1; i > 0; i--) {
+            var j = Math.floor(rng() * (i + 1));
+            var tmp = candidates[i];
+            candidates[i] = candidates[j];
+            candidates[j] = tmp;
+        }
+        for (var i = 0; i < Math.min(count, candidates.length); i++) {
+            anchors.push({
+                x: candidates[i].x + (rng() - 0.5) * 0.15,
+                y: candidates[i].y + (rng() - 0.5) * 0.15
+            });
+        }
+        // If we need more zones than candidates, add random ones
+        while (anchors.length < count) {
+            anchors.push({
+                x: 0.15 + rng() * 0.7,
+                y: 0.15 + rng() * 0.7
+            });
+        }
+    }
+
+    return anchors;
+}
+
+function generateZones(count, rng, width, height) {
+    if (count === 0) return [];
+
+    var anchors = generateZoneAnchors(rng, count, width, height);
+    var zones = [];
+
+    for (var i = 0; i < anchors.length; i++) {
+        zones.push({
+            anchor: anchors[i],
+            radius: (0.3 + rng() * 0.4) * ZONES_CONFIG.transitionWidth * 2,
+            falloff: ['smooth', 'smooth', 'linear'][Math.floor(rng() * 3)],
+            mood: generateMood(rng)
+        });
+    }
+
+    return zones;
+}
+
+// ==========================================
+// INFLUENCE GRID SYSTEM
+// ==========================================
+function calculateInfluencesAtPoint(x, y, zones, width, height) {
+    var nx = x / width;
+    var ny = y / height;
+
+    var influences = [];
+    var totalWeight = 0;
+
+    for (var i = 0; i < zones.length; i++) {
+        var zone = zones[i];
+        var dx = nx - zone.anchor.x;
+        var dy = ny - zone.anchor.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+
+        var falloffFunc = FALLOFF_FUNCS[zone.falloff] || FALLOFF_FUNCS.smooth;
+        var weight = falloffFunc(dist, zone.radius);
+
+        if (weight > 0.001) {
+            influences.push({ zoneIndex: i, weight: weight });
+            totalWeight += weight;
+        }
+    }
+
+    // Normalize and blend mood parameters
+    var blended = {
+        lineSpacingMult: 1.0,
+        noiseScaleMult: 1.0,
+        amplitudeMult: 1.0,
+        octavesOffset: 0,
+        flowDirection: null
+    };
+
+    if (totalWeight > 0 && influences.length > 0) {
+        var spacingAccum = 0;
+        var scaleAccum = 0;
+        var ampAccum = 0;
+        var octavesAccum = 0;
+        var flowX = 0, flowY = 0, flowWeight = 0;
+
+        for (var j = 0; j < influences.length; j++) {
+            var inf = influences[j];
+            var normWeight = inf.weight / totalWeight;
+            var mood = zones[inf.zoneIndex].mood;
+
+            spacingAccum += mood.lineSpacingMult * normWeight;
+            scaleAccum += mood.noiseScaleMult * normWeight;
+            ampAccum += mood.amplitudeMult * normWeight;
+            octavesAccum += mood.octavesOffset * normWeight;
+
+            // Handle flow direction as vector for proper angular interpolation
+            if (mood.flowDirection !== null) {
+                var rad = mood.flowDirection * Math.PI / 180;
+                flowX += Math.cos(rad) * normWeight;
+                flowY += Math.sin(rad) * normWeight;
+                flowWeight += normWeight;
+            }
+        }
+
+        blended.lineSpacingMult = spacingAccum;
+        blended.noiseScaleMult = scaleAccum;
+        blended.amplitudeMult = ampAccum;
+        blended.octavesOffset = Math.round(octavesAccum);
+
+        // Resolve flow direction from weighted vectors
+        if (flowWeight > 0.3 && (Math.abs(flowX) > 0.01 || Math.abs(flowY) > 0.01)) {
+            blended.flowDirection = Math.atan2(flowY, flowX) * 180 / Math.PI;
+        }
+    }
+
+    return blended;
+}
+
+function buildInfluenceGrid(zones, width, height, cellSize) {
+    var gridW = Math.ceil(width / cellSize);
+    var gridH = Math.ceil(height / cellSize);
+    var grid = new Array(gridW * gridH);
+
+    for (var gy = 0; gy < gridH; gy++) {
+        for (var gx = 0; gx < gridW; gx++) {
+            var px = (gx + 0.5) * cellSize;
+            var py = (gy + 0.5) * cellSize;
+            grid[gy * gridW + gx] = calculateInfluencesAtPoint(px, py, zones, width, height);
+        }
+    }
+
+    return { grid: grid, gridW: gridW, gridH: gridH, cellSize: cellSize };
+}
+
+function bilerp(v00, v10, v01, v11, fx, fy) {
+    var top = v00 + (v10 - v00) * fx;
+    var bottom = v01 + (v11 - v01) * fx;
+    return top + (bottom - top) * fy;
+}
+
+function sampleInfluenceGrid(x, y, gridData) {
+    if (!gridData || !gridData.grid) {
+        return {
+            lineSpacingMult: 1.0,
+            noiseScaleMult: 1.0,
+            amplitudeMult: 1.0,
+            octavesOffset: 0,
+            flowDirection: null
+        };
+    }
+
+    var gx = x / gridData.cellSize - 0.5;
+    var gy = y / gridData.cellSize - 0.5;
+
+    gx = Math.max(0, Math.min(gx, gridData.gridW - 1.001));
+    gy = Math.max(0, Math.min(gy, gridData.gridH - 1.001));
+
+    var x0 = Math.floor(gx);
+    var y0 = Math.floor(gy);
+    var x1 = Math.min(x0 + 1, gridData.gridW - 1);
+    var y1 = Math.min(y0 + 1, gridData.gridH - 1);
+
+    var fx = gx - x0;
+    var fy = gy - y0;
+
+    var v00 = gridData.grid[y0 * gridData.gridW + x0];
+    var v10 = gridData.grid[y0 * gridData.gridW + x1];
+    var v01 = gridData.grid[y1 * gridData.gridW + x0];
+    var v11 = gridData.grid[y1 * gridData.gridW + x1];
+
+    return {
+        lineSpacingMult: bilerp(v00.lineSpacingMult, v10.lineSpacingMult, v01.lineSpacingMult, v11.lineSpacingMult, fx, fy),
+        noiseScaleMult: bilerp(v00.noiseScaleMult, v10.noiseScaleMult, v01.noiseScaleMult, v11.noiseScaleMult, fx, fy),
+        amplitudeMult: bilerp(v00.amplitudeMult, v10.amplitudeMult, v01.amplitudeMult, v11.amplitudeMult, fx, fy),
+        octavesOffset: Math.round(bilerp(v00.octavesOffset, v10.octavesOffset, v01.octavesOffset, v11.octavesOffset, fx, fy)),
+        flowDirection: v00.flowDirection // Use nearest for flow direction
+    };
+}
+
+// ==========================================
+// COHERENCE & EDGE FUNCTIONS
+// ==========================================
+
+// Low-frequency noise shared across all cells for underlying continuity
+function getCoherenceLayer(x, y, seed) {
+    if (!noise) return 0;
+    var scale = 0.002;
+    // Use fbm with low octaves for smooth, large-scale features
+    var total = 0;
+    var frequency = 1;
+    var amplitude = 1;
+    var maxValue = 0;
+    for (var i = 0; i < 3; i++) {
+        total += noise.noise2D((x * scale + seed * 0.01) * frequency, y * scale * frequency) * amplitude;
+        maxValue += amplitude;
+        amplitude *= 0.6;
+        frequency *= 2;
+    }
+    return total / maxValue;
+}
+
+// Returns 0-1 where 1 = on edge, 0 = center of cell
+function getEdgeProximity(x, y, rect) {
+    var edgeZone = Math.min(rect.width, rect.height) * 0.15;
+
+    var distToLeft = x - rect.left;
+    var distToRight = rect.right - x;
+    var distToTop = y - rect.top;
+    var distToBottom = rect.bottom - y;
+
+    var minDist = Math.min(distToLeft, distToRight, distToTop, distToBottom);
+
+    return Math.max(0, 1 - minDist / edgeZone);
+}
+
+// ==========================================
+// SEEDED RANDOM
+// ==========================================
+function seededRandom(s) {
+    var mask = 0xffffffff;
+    var m_w = (123456789 + s) & mask;
+    var m_z = (987654321 - s) & mask;
+    return function() {
+        m_z = (36969 * (m_z & 65535) + (m_z >> 16)) & mask;
+        m_w = (18000 * (m_w & 65535) + (m_w >> 16)) & mask;
+        var result = ((m_z << 16) + (m_w & 65535)) >>> 0;
+        return result / 4294967296;
+    }
+}
+
+// ==========================================
+// GLOBAL FLOW FIELD
+// ==========================================
+// Creates directional coherence across the entire canvas
+
+function getGlobalFlowAngle(x, y, width, height, seed) {
+    var nx = x / width;
+    var ny = y / height;
+
+    // Base angle from noise - creates large sweeping curves
+    var baseAngle = noise.noise2D(nx * 2 + seed * 0.1, ny * 2) * Math.PI;
+
+    // Add gentle variation
+    var variation = noise.noise2D(nx * 4 + 100, ny * 4 + seed * 0.05) * 0.3;
+
+    return baseAngle + variation;
+}
+
+function getGlobalDensity(x, y, width, height, seed) {
+    var nx = x / width;
+    var ny = y / height;
+
+    // Smooth density gradient across canvas
+    var density = noise.noise2D(nx * 1.5 + seed * 0.1, ny * 1.5);
+    return 0.5 + density * 0.5; // 0 to 1
+}
+
+// ==========================================
+// NOISE DRIFT SYSTEM
+// ==========================================
+
+// Calculate noise drift displacement at a given point
+// Returns {dx, dy} displacement in pixels
+function getDriftDisplacement(x, y, seed, angle) {
+    if (!DRIFT_CONFIG.enabled || !noise) {
+        return { dx: 0, dy: 0 };
+    }
+
+    var strengthPx = DRIFT_CONFIG.strength * MM_TO_PX * CONFIG._scale;
+    var scale = DRIFT_CONFIG.scale;
+
+    // FBM (Fractal Brownian Motion) for richer noise
+    var noiseX = 0;
+    var noiseY = 0;
+    var amplitude = 1;
+    var frequency = 1;
+    var maxValue = 0;
+
+    for (var i = 0; i < DRIFT_CONFIG.octaves; i++) {
+        // Use different seed offsets for X and Y to decorrelate them
+        noiseX += noise.noise2D(
+            (x * scale + seed * 0.1) * frequency,
+            (y * scale) * frequency
+        ) * amplitude;
+
+        noiseY += noise.noise2D(
+            (x * scale + 100) * frequency,
+            (y * scale + seed * 0.1 + 100) * frequency
+        ) * amplitude;
+
+        maxValue += amplitude;
+        amplitude *= DRIFT_CONFIG.persistence;
+        frequency *= 2;
+    }
+
+    // Normalize to -1 to 1 range
+    noiseX /= maxValue;
+    noiseY /= maxValue;
+
+    var dx, dy;
+
+    if (DRIFT_CONFIG.directional && angle !== undefined) {
+        // Drift mainly perpendicular to the line direction
+        var perpAngle = angle + Math.PI / 2 + DRIFT_CONFIG.angleOffset;
+        var driftMagnitude = noiseX * strengthPx;
+        dx = Math.cos(perpAngle) * driftMagnitude;
+        dy = Math.sin(perpAngle) * driftMagnitude;
+    } else {
+        // Omnidirectional drift
+        dx = noiseX * strengthPx;
+        dy = noiseY * strengthPx;
+    }
+
+    return { dx: dx, dy: dy };
+}
+
+// Apply drift to a point, returns new Point
+function applyDrift(x, y, seed, angle) {
+    var drift = getDriftDisplacement(x, y, seed, angle);
+    return new Point(x + drift.dx, y + drift.dy);
+}
+
+// ==========================================
+// CELL WARP SYSTEM
+// ==========================================
+
+// Calculate warp displacement at a point (uses position-based noise for consistency)
+// Shared edges will have same displacement since they share coordinates
+function getWarpDisplacement(x, y) {
+    if (!WARP_CONFIG.enabled || !noise) {
+        return { dx: 0, dy: 0 };
+    }
+
+    var strengthPx = WARP_CONFIG.strength * MM_TO_PX * CONFIG._scale;
+    var scale = WARP_CONFIG.scale;
+
+    // FBM for smooth warp
+    var noiseX = 0;
+    var noiseY = 0;
+    var amplitude = 1;
+    var frequency = 1;
+    var maxValue = 0;
+
+    for (var i = 0; i < WARP_CONFIG.octaves; i++) {
+        // Use position-based noise (no seed offset) so shared edges align
+        noiseX += noise.noise2D(
+            x * scale * frequency,
+            y * scale * frequency + 500  // Offset Y sampling for X displacement
+        ) * amplitude;
+
+        noiseY += noise.noise2D(
+            x * scale * frequency + 500,  // Offset X sampling for Y displacement
+            y * scale * frequency
+        ) * amplitude;
+
+        maxValue += amplitude;
+        amplitude *= WARP_CONFIG.persistence;
+        frequency *= 2;
+    }
+
+    noiseX /= maxValue;
+    noiseY /= maxValue;
+
+    return {
+        dx: noiseX * strengthPx,
+        dy: noiseY * strengthPx
+    };
+}
+
+// Convert a rectangle to a deformed polygon with sampled edges
+function rectToWarpedPolygon(rect) {
+    var points = [];
+    var samples = WARP_CONFIG.samplesPerEdge;
+
+    // Sample along each edge (top, right, bottom, left)
+    // Top edge: left to right
+    for (var i = 0; i < samples; i++) {
+        var t = i / samples;
+        var x = rect.left + t * rect.width;
+        var y = rect.top;
+        var warp = getWarpDisplacement(x, y);
+        points.push(new Point(x + warp.dx, y + warp.dy));
+    }
+
+    // Right edge: top to bottom
+    for (var i = 0; i < samples; i++) {
+        var t = i / samples;
+        var x = rect.right;
+        var y = rect.top + t * rect.height;
+        var warp = getWarpDisplacement(x, y);
+        points.push(new Point(x + warp.dx, y + warp.dy));
+    }
+
+    // Bottom edge: right to left
+    for (var i = 0; i < samples; i++) {
+        var t = i / samples;
+        var x = rect.right - t * rect.width;
+        var y = rect.bottom;
+        var warp = getWarpDisplacement(x, y);
+        points.push(new Point(x + warp.dx, y + warp.dy));
+    }
+
+    // Left edge: bottom to top
+    for (var i = 0; i < samples; i++) {
+        var t = i / samples;
+        var x = rect.left;
+        var y = rect.bottom - t * rect.height;
+        var warp = getWarpDisplacement(x, y);
+        points.push(new Point(x + warp.dx, y + warp.dy));
+    }
+
+    // Create the path
+    var path = new Path();
+    for (var i = 0; i < points.length; i++) {
+        path.add(points[i]);
+    }
+    path.closed = true;
+
+    return path;
+}
+
+// ==========================================
+// GEOMETRIC FILL LIBRARY
+// ==========================================
+
+var FILLS = {
+    // Clean parallel lines at an angle
+    hatching: function(rect, group, params, rng) {
+        var angle = params.angle || 0;
+        var spacing = params.spacing || 8;
+        var cos = Math.cos(angle);
+        var sin = Math.sin(angle);
+        var seed = params.seed || 0;
+
+        // Calculate bounds for rotated lines
+        var cx = rect.center.x;
+        var cy = rect.center.y;
+        var diagonal = Math.sqrt(rect.width * rect.width + rect.height * rect.height);
+
+        // Step size for drift sampling along lines
+        var driftStep = Math.max(5, spacing * 0.5);
+
+        for (var d = -diagonal/2; d < diagonal/2; d += spacing) {
+            var path = new Path();
+            path.strokeColor = '#1a1a1a';
+            path.strokeWidth = params.strokeWidth || 1;
+            path.strokeCap = 'round';
+
+            // Generate points along line with drift
+            for (var t = -diagonal/2; t <= diagonal/2; t += driftStep) {
+                var x = cx + cos * t - sin * d;
+                var y = cy + sin * t + cos * d;
+                var drifted = applyDrift(x, y, seed, angle);
+                path.add(drifted);
+            }
+
+            if (path.segments.length > 1) {
+                path.smooth({ type: 'continuous' });
+                group.addChild(path);
+            }
+        }
+    },
+
+    // Two layers of hatching
+    crosshatch: function(rect, group, params, rng) {
+        var angle1 = params.angle || 0;
+        var angle2 = angle1 + Math.PI / 4; // 45 degrees offset
+        var spacing = params.spacing || 10;
+        var seed = params.seed || 0;
+
+        FILLS.hatching(rect, group, { angle: angle1, spacing: spacing, strokeWidth: params.strokeWidth, seed: seed }, rng);
+        FILLS.hatching(rect, group, { angle: angle2, spacing: spacing * 1.2, strokeWidth: params.strokeWidth, seed: seed + 50 }, rng);
+    },
+
+    // Zigzag/chevron pattern
+    chevron: function(rect, group, params, rng) {
+        var angle = params.angle || 0;
+        var spacing = params.spacing || 12;
+        var amplitude = params.amplitude || spacing * 0.8;
+        var wavelength = params.wavelength || spacing * 2;
+        var seed = params.seed || 0;
+
+        var cos = Math.cos(angle);
+        var sin = Math.sin(angle);
+        var cx = rect.center.x;
+        var cy = rect.center.y;
+        var diagonal = Math.sqrt(rect.width * rect.width + rect.height * rect.height);
+
+        for (var d = -diagonal/2; d < diagonal/2; d += spacing) {
+            var path = new Path();
+            path.strokeColor = '#1a1a1a';
+            path.strokeWidth = params.strokeWidth || 1;
+            path.strokeCap = 'round';
+            path.strokeJoin = 'round';
+
+            for (var t = -diagonal/2; t < diagonal/2; t += wavelength/2) {
+                var zigzag = (Math.floor(t / (wavelength/2)) % 2 === 0) ? amplitude/2 : -amplitude/2;
+                var x = cx + cos * t - sin * (d + zigzag);
+                var y = cy + sin * t + cos * (d + zigzag);
+                var drifted = applyDrift(x, y, seed, angle);
+                path.add(drifted);
+            }
+
+            group.addChild(path);
+        }
+    },
+
+    // Concentric shapes from center
+    concentric: function(rect, group, params, rng) {
+        var cx = params.centerX || rect.center.x;
+        var cy = params.centerY || rect.center.y;
+        var spacing = params.spacing || 10;
+        var maxRadius = Math.max(rect.width, rect.height);
+        var shape = params.shape || 'circle'; // circle, square, diamond
+        var seed = params.seed || 0;
+
+        for (var r = spacing; r < maxRadius; r += spacing) {
+            var path = new Path();
+            path.strokeColor = '#1a1a1a';
+            path.strokeWidth = params.strokeWidth || 1;
+            path.fillColor = null;
+
+            if (shape === 'circle') {
+                // Generate circle points with drift
+                var numPoints = Math.max(24, Math.floor(r * 0.5));
+                for (var i = 0; i <= numPoints; i++) {
+                    var angle = (i / numPoints) * Math.PI * 2;
+                    var x = cx + Math.cos(angle) * r;
+                    var y = cy + Math.sin(angle) * r;
+                    var drifted = applyDrift(x, y, seed, angle);
+                    path.add(drifted);
+                }
+                path.closed = true;
+                path.smooth({ type: 'continuous' });
+            } else if (shape === 'square') {
+                // Generate square points with drift
+                var points = [
+                    { x: cx - r, y: cy - r }, { x: cx, y: cy - r }, { x: cx + r, y: cy - r },
+                    { x: cx + r, y: cy }, { x: cx + r, y: cy + r },
+                    { x: cx, y: cy + r }, { x: cx - r, y: cy + r },
+                    { x: cx - r, y: cy }
+                ];
+                for (var i = 0; i < points.length; i++) {
+                    var drifted = applyDrift(points[i].x, points[i].y, seed);
+                    path.add(drifted);
+                }
+                path.closed = true;
+            } else if (shape === 'diamond') {
+                var diamondPoints = [
+                    { x: cx, y: cy - r },
+                    { x: cx + r, y: cy },
+                    { x: cx, y: cy + r },
+                    { x: cx - r, y: cy }
+                ];
+                for (var i = 0; i < diamondPoints.length; i++) {
+                    var drifted = applyDrift(diamondPoints[i].x, diamondPoints[i].y, seed);
+                    path.add(drifted);
+                }
+                path.closed = true;
+            }
+
+            group.addChild(path);
+        }
+    },
+
+    // Lines radiating from center
+    radial: function(rect, group, params, rng) {
+        var cx = params.centerX || rect.center.x;
+        var cy = params.centerY || rect.center.y;
+        var count = params.count || 24;
+        var maxRadius = Math.max(rect.width, rect.height);
+        var seed = params.seed || 0;
+
+        // Step size for drift sampling along radial lines
+        var driftStep = Math.max(8, maxRadius / 20);
+
+        for (var i = 0; i < count; i++) {
+            var angle = (i / count) * Math.PI * 2;
+            var path = new Path();
+            path.strokeColor = '#1a1a1a';
+            path.strokeWidth = params.strokeWidth || 1;
+            path.strokeCap = 'round';
+
+            // Generate points along radius with drift
+            for (var r = 0; r <= maxRadius; r += driftStep) {
+                var x = cx + Math.cos(angle) * r;
+                var y = cy + Math.sin(angle) * r;
+                var drifted = applyDrift(x, y, seed, angle);
+                path.add(drifted);
+            }
+
+            if (path.segments.length > 1) {
+                path.smooth({ type: 'continuous' });
+                group.addChild(path);
+            }
+        }
+    },
+
+    // Dots/stippling pattern
+    dots: function(rect, group, params, rng) {
+        var spacing = params.spacing || 8;
+        var radius = params.radius || 1.5;
+        var jitter = params.jitter || 0;
+        var seed = params.seed || 0;
+
+        for (var y = rect.top; y < rect.bottom; y += spacing) {
+            var offset = (Math.floor(y / spacing) % 2) * spacing * 0.5;
+            for (var x = rect.left + offset; x < rect.right; x += spacing) {
+                var jx = jitter > 0 ? (rng() - 0.5) * jitter : 0;
+                var jy = jitter > 0 ? (rng() - 0.5) * jitter : 0;
+
+                // Apply drift to dot position
+                var drifted = applyDrift(x + jx, y + jy, seed);
+                var dot = new Path.Circle(drifted, radius);
+                dot.fillColor = '#1a1a1a';
+                group.addChild(dot);
+            }
+        }
+    },
+
+    // Wavy parallel lines (gentle, controlled waves)
+    waves: function(rect, group, params, rng) {
+        var angle = params.angle || 0;
+        var spacing = params.spacing || 10;
+        var amplitude = params.amplitude || 5;
+        var wavelength = params.wavelength || 40;
+        var seed = params.seed || 0;
+
+        var cos = Math.cos(angle);
+        var sin = Math.sin(angle);
+        var cx = rect.center.x;
+        var cy = rect.center.y;
+        var diagonal = Math.sqrt(rect.width * rect.width + rect.height * rect.height);
+
+        for (var d = -diagonal/2; d < diagonal/2; d += spacing) {
+            var path = new Path();
+            path.strokeColor = '#1a1a1a';
+            path.strokeWidth = params.strokeWidth || 1;
+            path.strokeCap = 'round';
+
+            for (var t = -diagonal/2; t < diagonal/2; t += 3) {
+                var wave = Math.sin(t / wavelength * Math.PI * 2) * amplitude;
+                var x = cx + cos * t - sin * (d + wave);
+                var y = cy + sin * t + cos * (d + wave);
+                var drifted = applyDrift(x, y, seed, angle);
+                path.add(drifted);
+            }
+
+            path.smooth({ type: 'continuous' });
+            group.addChild(path);
+        }
+    },
+
+    // Brick-like offset pattern
+    bricks: function(rect, group, params, rng) {
+        var brickWidth = params.brickWidth || 30;
+        var brickHeight = params.brickHeight || 12;
+        var seed = params.seed || 0;
+
+        // Step size for drift sampling
+        var driftStep = Math.max(5, brickWidth * 0.2);
+
+        var row = 0;
+        for (var y = rect.top; y < rect.bottom; y += brickHeight) {
+            var offset = (row % 2) * brickWidth * 0.5;
+
+            // Horizontal line with drift
+            var hLine = new Path();
+            hLine.strokeColor = '#1a1a1a';
+            hLine.strokeWidth = params.strokeWidth || 1;
+            for (var hx = rect.left; hx <= rect.right; hx += driftStep) {
+                var drifted = applyDrift(hx, y, seed);
+                hLine.add(drifted);
+            }
+            if (hLine.segments.length > 1) {
+                hLine.smooth({ type: 'continuous' });
+                group.addChild(hLine);
+            }
+
+            // Vertical lines with drift
+            for (var x = rect.left + offset; x < rect.right; x += brickWidth) {
+                var vLine = new Path();
+                vLine.strokeColor = '#1a1a1a';
+                vLine.strokeWidth = params.strokeWidth || 1;
+                var yEnd = Math.min(y + brickHeight, rect.bottom);
+                for (var vy = y; vy <= yEnd; vy += driftStep) {
+                    var drifted = applyDrift(x, vy, seed);
+                    vLine.add(drifted);
+                }
+                if (vLine.segments.length > 1) {
+                    vLine.smooth({ type: 'continuous' });
+                    group.addChild(vLine);
+                }
+            }
+            row++;
+        }
+    }
+};
+
+var FILL_NAMES = Object.keys(FILLS);
+
+// ==========================================
+// PAPER.JS SETUP
+// ==========================================
+paper.install(window);
+
+window.onload = function() {
+    var canvas = document.getElementById('myCanvas');
+    paper.setup(canvas);
+
+    updateCanvasSize();
+    init();
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            window.regenerate();
+        }
+        if (e.key === 's' || e.key === 'S') {
+            if (!e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                window.downloadSVG();
+            }
+        }
+    });
+};
+
+function updateCanvasSize() {
+    var format = FORMATS[CONFIG.format];
+    var w = format.width;
+    var h = format.height;
+
+    if (CONFIG.orientation === 'landscape') {
+        var tmp = w;
+        w = h;
+        h = tmp;
+    }
+
+    // Scale to fit container while maintaining aspect ratio
+    var container = document.getElementById('canvas-container');
+    var maxW = container.clientWidth - 40;
+    var maxH = container.clientHeight - 40;
+
+    var scale = Math.min(maxW / (w * MM_TO_PX), maxH / (h * MM_TO_PX));
+    scale = Math.min(scale, 1.5); // Don't scale up too much
+
+    var canvas = document.getElementById('myCanvas');
+    canvas.width = w * MM_TO_PX * scale;
+    canvas.height = h * MM_TO_PX * scale;
+
+    paper.view.viewSize = new Size(canvas.width, canvas.height);
+
+    // Store actual dimensions for export
+    CONFIG._actualWidth = w;
+    CONFIG._actualHeight = h;
+    CONFIG._scale = scale;
+}
+
+// ==========================================
+// GENERATION LOGIC
+// ==========================================
+function recursiveSubdivide(rect, depth, collector, rng) {
+    if (depth <= 0) {
+        collector.push(rect);
+        return;
+    }
+
+    if (rng() < 0.12 && collector.length > 2) {
+        collector.push(rect);
+        return;
+    }
+
+    var ratios = [0.33, 0.4, 0.5, 0.6, 0.67];
+    var splitRatio = ratios[Math.floor(rng() * ratios.length)];
+    var isVertical = rect.width > rect.height ? rng() > 0.25 : rng() < 0.25;
+
+    if (isVertical) {
+        var splitX = rect.x + (rect.width * splitRatio);
+        var r1 = new Rectangle(rect.x, rect.y, splitX - rect.x, rect.height);
+        var r2 = new Rectangle(splitX, rect.y, rect.right - splitX, rect.height);
+        recursiveSubdivide(r1, depth - 1, collector, rng);
+        recursiveSubdivide(r2, depth - 1, collector, rng);
+    } else {
+        var splitY = rect.y + (rect.height * splitRatio);
+        var r1 = new Rectangle(rect.x, rect.y, rect.width, splitY - rect.y);
+        var r2 = new Rectangle(rect.x, splitY, rect.width, rect.bottom - splitY);
+        recursiveSubdivide(r1, depth - 1, collector, rng);
+        recursiveSubdivide(r2, depth - 1, collector, rng);
+    }
+}
+
+// ==========================================
+// CELL FILL RENDERING
+// ==========================================
+
+// Select fill type based on zone influence and cell properties
+function selectFillType(rect, rng, zoneParams, canvasWidth, canvasHeight) {
+    // Different fill types work better for different scenarios
+    var fills = {
+        // Directional fills - use global flow
+        directional: ['hatching', 'crosshatch', 'chevron', 'waves'],
+        // Radial fills - use for emphasis
+        radial: ['concentric', 'radial'],
+        // Texture fills
+        texture: ['dots', 'bricks']
+    };
+
+    // Bias selection based on zone params
+    var spacingMult = zoneParams.lineSpacingMult || 1;
+    var ampMult = zoneParams.amplitudeMult || 1;
+
+    // Dense zones (low spacing) favor texture/dots
+    // High amplitude zones favor directional fills
+    // Large cells favor radial fills
+
+    var cellArea = rect.width * rect.height;
+    var canvasArea = canvasWidth * canvasHeight;
+    var isLargeCell = cellArea > canvasArea * 0.08;
+    var isSquarish = Math.abs(rect.width / rect.height - 1) < 0.5;
+
+    var choice = rng();
+
+    if (isLargeCell && isSquarish && choice < 0.4) {
+        // Large square cells - radial fills
+        return fills.radial[Math.floor(rng() * fills.radial.length)];
+    } else if (spacingMult < 0.8 && choice < 0.3) {
+        // Dense zones - texture fills
+        return fills.texture[Math.floor(rng() * fills.texture.length)];
+    } else {
+        // Default - directional fills (most common)
+        return fills.directional[Math.floor(rng() * fills.directional.length)];
+    }
+}
+
+// Main cell fill function - replaces drawFlowField
+function drawCellFill(rect, group, fillType, seedVal, rng, influenceGrid, canvasWidth, canvasHeight, warpedPolygon) {
+    // Use warped polygon for clipping if provided, otherwise fall back to rectangle
+    var clip;
+    if (warpedPolygon) {
+        clip = warpedPolygon.clone();
+    } else {
+        clip = new Path.Rectangle(rect);
+    }
+    group.addChild(clip);
+    group.clipped = true;
+
+    // Calculate fill bounds - use warped polygon bounds if available, with padding for full coverage
+    var fillBounds;
+    if (warpedPolygon) {
+        var polyBounds = warpedPolygon.bounds;
+        // Expand bounds slightly to ensure fills cover the entire warped area
+        var padding = Math.max(polyBounds.width, polyBounds.height) * 0.1;
+        fillBounds = new Rectangle(
+            polyBounds.x - padding,
+            polyBounds.y - padding,
+            polyBounds.width + padding * 2,
+            polyBounds.height + padding * 2
+        );
+    } else {
+        fillBounds = rect;
+    }
+
+    var strokeWidthPx = CONFIG.strokeWidth * MM_TO_PX * CONFIG._scale;
+
+    // Get zone params at cell center for base parameters
+    var centerParams = sampleInfluenceGrid(rect.center.x, rect.center.y, influenceGrid);
+
+    // Get global flow angle at cell center for directional coherence
+    var flowAngle = getGlobalFlowAngle(rect.center.x, rect.center.y, canvasWidth, canvasHeight, seedVal);
+
+    // Get global density for spacing modulation
+    var globalDensity = getGlobalDensity(rect.center.x, rect.center.y, canvasWidth, canvasHeight, seedVal);
+
+    // Base spacing modified by zone and global density
+    var baseSpacing = CONFIG.lineSpacing * MM_TO_PX * CONFIG._scale;
+    var spacingMult = (centerParams.lineSpacingMult || 1) * (0.7 + globalDensity * 0.6);
+    var spacing = baseSpacing * spacingMult;
+
+    // Clamp spacing to reasonable range
+    spacing = Math.max(4 * CONFIG._scale, Math.min(spacing, 25 * CONFIG._scale));
+
+    // Get the fill function
+    var fillFunc = FILLS[fillType] || FILLS.hatching;
+
+    // Prepare params based on fill type
+    var params = {
+        strokeWidth: strokeWidthPx,
+        spacing: spacing,
+        seed: seedVal  // Pass seed for drift calculations
+    };
+
+    // Directional fills use flow angle
+    if (['hatching', 'crosshatch', 'chevron', 'waves'].indexOf(fillType) >= 0) {
+        // Add zone flow direction influence if present
+        var zoneFlowRad = centerParams.flowDirection !== null
+            ? centerParams.flowDirection * Math.PI / 180
+            : 0;
+        var blendedAngle = flowAngle * (1 - ZONES_CONFIG.coherenceStrength) +
+                          zoneFlowRad * ZONES_CONFIG.coherenceStrength;
+
+        params.angle = blendedAngle;
+
+        // Waves/chevron specific params
+        if (fillType === 'waves') {
+            params.amplitude = spacing * 0.5 * (centerParams.amplitudeMult || 1);
+            params.wavelength = spacing * 4;
+        } else if (fillType === 'chevron') {
+            params.amplitude = spacing * 0.8;
+            params.wavelength = spacing * 2;
+        }
+    }
+
+    // Radial fills use cell center or offset center
+    if (['concentric', 'radial'].indexOf(fillType) >= 0) {
+        // Offset center slightly based on flow
+        var offsetX = Math.cos(flowAngle) * rect.width * 0.1;
+        var offsetY = Math.sin(flowAngle) * rect.height * 0.1;
+        params.centerX = rect.center.x + offsetX;
+        params.centerY = rect.center.y + offsetY;
+
+        if (fillType === 'radial') {
+            params.count = Math.floor(12 + globalDensity * 20);
+        }
+
+        if (fillType === 'concentric') {
+            // Randomly choose shape based on seed
+            var shapes = ['circle', 'square', 'diamond'];
+            params.shape = shapes[Math.floor(rng() * shapes.length)];
+        }
+    }
+
+    // Dots specific params
+    if (fillType === 'dots') {
+        params.radius = strokeWidthPx * (0.8 + rng() * 0.8);
+        params.jitter = spacing * 0.2;
+    }
+
+    // Bricks specific params
+    if (fillType === 'bricks') {
+        params.brickWidth = spacing * 3;
+        params.brickHeight = spacing;
+    }
+
+    // Execute the fill using fillBounds (expanded for warped polygons)
+    fillFunc(fillBounds, group, params, rng);
+}
+
+function drawFrame(width, height) {
+    var paddingPx = CONFIG.padding * MM_TO_PX * CONFIG._scale;
+
+    var border = new Path.Rectangle(
+        new Point(paddingPx, paddingPx),
+        new Size(width - paddingPx * 2, height - paddingPx * 2)
+    );
+    border.strokeColor = 'black';
+    border.strokeWidth = 2 * CONFIG._scale;
+
+    var marks = [
+        new Point(paddingPx, paddingPx),
+        new Point(width - paddingPx, paddingPx),
+        new Point(paddingPx, height - paddingPx),
+        new Point(width - paddingPx, height - paddingPx)
+    ];
+
+    var markSize = 10 * CONFIG._scale;
+    for (var i = 0; i < marks.length; i++) {
+        var pt = marks[i];
+        var l1 = new Path.Line(new Point(pt.x - markSize, pt.y), new Point(pt.x + markSize, pt.y));
+        var l2 = new Path.Line(new Point(pt.x, pt.y - markSize), new Point(pt.x, pt.y + markSize));
+        l1.strokeColor = 'black';
+        l1.strokeWidth = 0.5 * CONFIG._scale;
+        l2.strokeColor = 'black';
+        l2.strokeWidth = 0.5 * CONFIG._scale;
+    }
+}
+
+function init() {
+    project.clear();
+
+    var rng = seededRandom(currentSeed);
+    noise = new SimplexNoise(rng);
+
+    document.getElementById('seed-display').innerText = Math.floor(currentSeed);
+
+    var width = paper.view.size.width;
+    var height = paper.view.size.height;
+    var paddingPx = CONFIG.padding * MM_TO_PX * CONFIG._scale;
+
+    var workingWidth = width - (paddingPx * 2);
+    var workingHeight = height - (paddingPx * 2);
+
+    // Generate compositional zones
+    var zones = [];
+    var influenceGrid = null;
+
+    if (ZONES_CONFIG.enabled && ZONES_CONFIG.count > 0) {
+        zones = generateZones(ZONES_CONFIG.count, rng, width, height);
+        // Build influence grid (30px resolution for good balance)
+        influenceGrid = buildInfluenceGrid(zones, width, height, 30);
+    }
+
+    var gridCells = [];
+    var startRect = new Rectangle(paddingPx, paddingPx, workingWidth, workingHeight);
+    recursiveSubdivide(startRect, CONFIG.subdivisions, gridCells, rng);
+
+    gridCells.sort(function(a, b) { return (b.width * b.height) - (a.width * a.height); });
+
+    drawFrame(width, height);
+
+    for (var index = 0; index < gridCells.length; index++) {
+        var r = gridCells[index];
+        var cellGroup = new Group();
+
+        // Create warped polygon for this cell (if warp enabled)
+        var warpedPolygon = WARP_CONFIG.enabled ? rectToWarpedPolygon(r) : null;
+
+        // Get zone params for this cell to influence fill selection
+        var cellParams = sampleInfluenceGrid(r.center.x, r.center.y, influenceGrid);
+
+        // Select fill type - either forced or auto-selected
+        var fillType;
+        if (CONFIG.forceFill) {
+            fillType = CONFIG.forceFill;
+        } else {
+            fillType = selectFillType(r, rng, cellParams, width, height);
+        }
+
+        // Draw the cell fill (pass warped polygon for clipping)
+        drawCellFill(r, cellGroup, fillType, currentSeed + (index * 137), rng, influenceGrid, width, height, warpedPolygon);
+
+        // Draw cell border if enabled (use warped polygon if available)
+        if (ZONES_CONFIG.showBorders) {
+            var border;
+            if (warpedPolygon) {
+                border = warpedPolygon.clone();
+            } else {
+                border = new Path.Rectangle(r);
+            }
+            border.strokeColor = '#222';
+            border.strokeWidth = 0.75 * CONFIG._scale;
+            border.fillColor = null;
+            cellGroup.addChild(border);
+        }
+
+        // Clean up the warped polygon if we created one
+        if (warpedPolygon) {
+            warpedPolygon.remove();
+        }
+    }
+
+    paper.view.draw();
+}
+
+// ==========================================
+// UI CONTROLS
+// ==========================================
+window.updateConfig = function() {
+    CONFIG.lineSpacing = parseFloat(document.getElementById('line-spacing').value);
+    CONFIG.strokeWidth = parseFloat(document.getElementById('stroke-width').value);
+    CONFIG.subdivisions = parseInt(document.getElementById('subdivisions').value);
+    CONFIG.forceFill = document.getElementById('force-fill').value;
+
+    // Update displays
+    document.getElementById('spacing-value').innerText = CONFIG.lineSpacing;
+    document.getElementById('stroke-value').innerText = CONFIG.strokeWidth.toFixed(1);
+    document.getElementById('subdiv-value').innerText = CONFIG.subdivisions;
+
+    init();
+};
+
+window.setFormat = function(format) {
+    CONFIG.format = format;
+    document.getElementById('btn-a4').classList.toggle('active', format === 'A4');
+    document.getElementById('btn-a3').classList.toggle('active', format === 'A3');
+    updateCanvasSize();
+    init();
+};
+
+window.setOrientation = function(orientation) {
+    CONFIG.orientation = orientation;
+    document.getElementById('btn-portrait').classList.toggle('active', orientation === 'portrait');
+    document.getElementById('btn-landscape').classList.toggle('active', orientation === 'landscape');
+    updateCanvasSize();
+    init();
+};
+
+window.regenerate = function() {
+    currentSeed = Math.random() * 100000;
+    init();
+};
+
+window.randomizeParams = function() {
+    var rng = Math.random;
+    document.getElementById('line-spacing').value = 3 + rng() * 12;
+    document.getElementById('stroke-width').value = 0.5 + rng() * 2.5;
+    document.getElementById('subdivisions').value = Math.floor(2 + rng() * 4);
+    // Randomly select a fill or leave it on auto
+    var fills = ['', 'hatching', 'crosshatch', 'chevron', 'waves', 'concentric', 'radial', 'dots', 'bricks'];
+    document.getElementById('force-fill').value = rng() < 0.4 ? '' : fills[Math.floor(rng() * fills.length)];
+    // Randomize drift
+    document.getElementById('drift-enabled').checked = rng() > 0.2;  // 80% chance enabled
+    document.getElementById('drift-strength').value = 1 + rng() * 15;
+    document.getElementById('drift-scale').value = 0.003 + rng() * 0.04;
+    document.getElementById('drift-octaves').value = Math.floor(1 + rng() * 4);
+    document.getElementById('drift-directional').checked = rng() > 0.7;  // 30% chance
+    // Randomize warp
+    document.getElementById('warp-enabled').checked = rng() > 0.15;  // 85% chance enabled
+    document.getElementById('warp-strength').value = 2 + rng() * 25;
+    document.getElementById('warp-scale').value = 0.003 + rng() * 0.025;
+    document.getElementById('warp-samples').value = Math.floor(4 + rng() * 12);
+    window.updateWarp();
+    window.updateDrift();
+    window.updateConfig();
+};
+
+window.resetParams = function() {
+    document.getElementById('line-spacing').value = 6;
+    document.getElementById('stroke-width').value = 1.0;
+    document.getElementById('subdivisions').value = 4;
+    document.getElementById('force-fill').value = '';
+    // Reset zone controls
+    document.getElementById('zone-count').value = 3;
+    document.getElementById('zone-transition').value = 50;
+    document.getElementById('zone-coherence').value = 20;
+    document.getElementById('zone-placement').value = 'random';
+    document.getElementById('zone-borders').checked = true;
+    // Reset drift controls
+    document.getElementById('drift-enabled').checked = true;
+    document.getElementById('drift-strength').value = 5;
+    document.getElementById('drift-scale').value = 0.01;
+    document.getElementById('drift-octaves').value = 2;
+    document.getElementById('drift-directional').checked = false;
+    // Reset warp controls
+    document.getElementById('warp-enabled').checked = true;
+    document.getElementById('warp-strength').value = 8;
+    document.getElementById('warp-scale').value = 0.008;
+    document.getElementById('warp-samples').value = 8;
+    window.updateWarp();
+    window.updateDrift();
+    window.updateZones();
+    window.updateConfig();
+};
+
+window.updateZones = function() {
+    ZONES_CONFIG.count = parseInt(document.getElementById('zone-count').value);
+    ZONES_CONFIG.transitionWidth = parseInt(document.getElementById('zone-transition').value) / 100;
+    ZONES_CONFIG.coherenceStrength = parseInt(document.getElementById('zone-coherence').value) / 100;
+    ZONES_CONFIG.placement = document.getElementById('zone-placement').value;
+    ZONES_CONFIG.showBorders = document.getElementById('zone-borders').checked;
+    ZONES_CONFIG.enabled = ZONES_CONFIG.count > 0;
+
+    // Update displays
+    document.getElementById('zone-count-value').innerText = ZONES_CONFIG.count;
+    document.getElementById('zone-trans-value').innerText = document.getElementById('zone-transition').value;
+    document.getElementById('zone-coh-value').innerText = document.getElementById('zone-coherence').value;
+
+    init();
+};
+
+window.updateDrift = function() {
+    DRIFT_CONFIG.enabled = document.getElementById('drift-enabled').checked;
+    DRIFT_CONFIG.strength = parseFloat(document.getElementById('drift-strength').value);
+    DRIFT_CONFIG.scale = parseFloat(document.getElementById('drift-scale').value);
+    DRIFT_CONFIG.octaves = parseInt(document.getElementById('drift-octaves').value);
+    DRIFT_CONFIG.directional = document.getElementById('drift-directional').checked;
+
+    // Update displays
+    document.getElementById('drift-strength-value').innerText = DRIFT_CONFIG.strength;
+    document.getElementById('drift-scale-value').innerText = DRIFT_CONFIG.scale.toFixed(3);
+    document.getElementById('drift-octaves-value').innerText = DRIFT_CONFIG.octaves;
+
+    init();
+};
+
+window.updateWarp = function() {
+    WARP_CONFIG.enabled = document.getElementById('warp-enabled').checked;
+    WARP_CONFIG.strength = parseFloat(document.getElementById('warp-strength').value);
+    WARP_CONFIG.scale = parseFloat(document.getElementById('warp-scale').value);
+    WARP_CONFIG.samplesPerEdge = parseInt(document.getElementById('warp-samples').value);
+
+    // Update displays
+    document.getElementById('warp-strength-value').innerText = WARP_CONFIG.strength;
+    document.getElementById('warp-scale-value').innerText = WARP_CONFIG.scale.toFixed(3);
+    document.getElementById('warp-samples-value').innerText = WARP_CONFIG.samplesPerEdge;
+
+    init();
+};
+
+window.downloadSVG = function() {
+    // Create export at actual size (not preview scale)
+    var exportScale = 1 / CONFIG._scale;
+
+    var svg = project.exportSVG({
+        asString: true,
+        bounds: 'content'
+    });
+
+    // Adjust viewBox for actual print size
+    var actualW = CONFIG._actualWidth;
+    var actualH = CONFIG._actualHeight;
+    svg = svg.replace(
+        /width="[^"]*"/,
+        'width="' + actualW + 'mm"'
+    ).replace(
+        /height="[^"]*"/,
+        'height="' + actualH + 'mm"'
+    );
+
+    var blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'terrain_' + CONFIG.format + '_' + Math.floor(currentSeed) + '.svg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+};
+
+// Handle window resize
+window.addEventListener('resize', function() {
+    updateCanvasSize();
+    init();
+});
+</script>
+
+</body>
+</html>

@@ -24,6 +24,7 @@
       --accent-dim: #2a7a35;
       --experiment: #a78bfa;
       --app: #60a5fa;
+      --game: #f472b6;
     }
 
     html {
@@ -198,11 +199,17 @@
       color: var(--app);
     }
 
+    .section-header .tag.game {
+      background: rgba(244, 114, 182, 0.1);
+      color: var(--game);
+    }
+
     /* Grid */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 1rem;
+      counter-reset: card-counter;
     }
 
     /* Cards */
@@ -234,11 +241,18 @@
       opacity: 1;
     }
 
-    .card-index {
+    .card {
+      counter-increment: card-counter;
+    }
+
+    .card::after {
+      content: counter(card-counter, decimal-leading-zero);
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
       font-family: 'Space Mono', monospace;
       font-size: 0.625rem;
       color: var(--text-muted);
-      margin-bottom: 1rem;
       letter-spacing: 0.1em;
     }
 
@@ -363,11 +377,10 @@
     <section class="container">
       <div class="section-header">
         <h2>Experiments</h2>
-        <span class="tag experiment">LAB</span>
+        <span class="tag experiment">Weirdness expected</span>
       </div>
       <div class="grid">
         <a href="/experiments/blender" class="card">
-          <div class="card-index">01</div>
           <h3>Blender <span class="arrow">&rarr;</span></h3>
           <p>3D renders and visual explorations crafted in Blender.</p>
           <div class="tech">
@@ -376,21 +389,57 @@
           </div>
         </a>
         <a href="/apps/hatches" class="card">
-          <div class="card-index">01</div>
           <h3>Hatches <span class="arrow">&rarr;</span></h3>
           <p>Generative hatching patterns with real-time parameter control.</p>
           <div class="tech">
             <span>PaperJS</span>
-            <span>Tweakpane</span>
+            <span>Plotter Art</span>
+            <span>Hatches</span>
           </div>
         </a>
         <a href="/experiments/flowfield" class="card">
-          <div class="card-index">03</div>
           <h3>Flowfield <span class="arrow">&rarr;</span></h3>
           <p>Particles dancing through vector fields.</p>
           <div class="tech">
+            <span>PaperJS</span>
+            <span>Plotter Art</span>
+            <span>Streamlines</span>
+          </div>
+        </a>
+        <a href="/experiments/physarum.html" class="card">
+          <h3>Physarum <span class="arrow">&rarr;</span></h3>
+          <p>GPGPU slime mold simulation with million-agent swarm behavior.</p>
+          <div class="tech">
+            <span>WebGL</span>
+            <span>GPGPU</span>
+            <span>Simulation</span>
+          </div>
+        </a>
+        <a href="/experiments/recursion.html" class="card">
+          <h3>Weird Sheet <span class="arrow">&rarr;</span></h3>
+          <p>Recursive generation with brush control.</p>
+          <div class="tech">
             <span>Canvas</span>
-            <span>Vectors</span>
+            <span>Plotter Art</span>
+            <span>Generative</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="container">
+      <div class="section-header">
+        <h2>Games</h2>
+        <span class="tag game">Time wasters</span>
+      </div>
+      <div class="grid">
+        <a href="/games/pulsion.html" class="card">
+          <h3>Pulsion <span class="arrow">&rarr;</span></h3>
+          <p>An experience in replayability and visual rhythm.</p>
+          <div class="tech">
+            <span>JavaScript</span>
+            <span>Canvas</span>
+            <span>Touch</span>
           </div>
         </a>
       </div>
@@ -399,11 +448,10 @@
     <section class="container">
       <div class="section-header">
         <h2>Apps</h2>
-        <span class="tag app">TOOLS</span>
+        <span class="tag app">Certified Useless</span>
       </div>
       <div class="grid">
         <a href="/apps/hackernews" class="card">
-          <div class="card-index">02</div>
           <h3>Hacker News <span class="arrow">&rarr;</span></h3>
           <p>A minimal reader for the orange site.</p>
           <div class="tech">
